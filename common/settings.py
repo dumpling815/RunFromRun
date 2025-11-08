@@ -180,6 +180,7 @@ SYSTEM_PROMPT = """
         **Source Terms:** TUSD — “First Digital Trust Limited”.
 
     - If the report splits a category into multiple rows (e.g., several cash-like rows), **sum them** into the single schema field.
+    - But same value from report should not be double-counted into multiple schema fields.
 
     2) **Use Instrument Codes (CUSIP, ISIN, Ticker)**
     - If a line includes identifiers (e.g., CUSIP/ISIN), use your financial knowledge to classify the instrument and map it into the correct schema category above.
@@ -218,6 +219,7 @@ USER_PROMPT_TEMPLATE = f"""
 """
 
 if __name__ == "__main__":
+    #[DEBUG] for checking loaded settings
     print("CAMELOT_MODE:", CAMELOT_MODE)
     print(type(CAMELOT_MODE))
     print("OLLAMA:", OLLAMASETTINGS)

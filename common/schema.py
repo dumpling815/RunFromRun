@@ -5,10 +5,10 @@ from common.settings import AVAILABLE
 # from uuid import uuid4 # timestamp가 아닌 unique id가 필요한가? -> 만일 DB에 저장한다면 필요할 수 있음.
 
 class Asset(BaseModel):
-    tier: Literal[1, 2, 3, 4, 5, -1] # -1 is for N/A
+    tier: Literal[1, 2, 3, 4, 5] = Field(..., frozen=True)
     qls_score: float = Field(..., ge=0, le=1, frozen=True)
     amount: float | None = Field(..., ge=0) # US dollar amount
-    ratio: float | None = Field(None, ge=0, le=100)
+    ratio: float | None = Field(..., ge=0, le=100)
 
 class AssetTable(BaseModel):
     # Tier 1 Assets
@@ -122,9 +122,9 @@ class AmountsOnly(BaseModel):
     other_investments: Optional[float] = Field(None, ge=0) 
     custodial_concentration: Optional[float] = Field(None, ge=0)
 
-    total_amount: Optional[float] = Field(..., ge=0)
-
     # correction value는 LLM 응답 후 계산되므로 입력 모델에는 포함하지 않음.
+
+    total_amount: Optional[float] = Field(..., ge=0)
 
     def to_asset_table(self) -> AssetTable:
         asset_table = AssetTable(total_amount=self.total_amount)
