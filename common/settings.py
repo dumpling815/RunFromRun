@@ -212,7 +212,8 @@ SYSTEM_PROMPT = """
     - If a ratio is present but amount is missing, infer amount when the report provides `total` and ratios (amount = total × ratio/100). Only do this when the relation is explicitly implied by the table.
 
     6) **Output Format**
-    - Output **only** one JSON object that matches the AssetTable schema exactly.
+    - Output: **only** one JSON object that matches the given schema exactly.
+    - Following JSON schema is created by json.dumps(<pydantic BaseModel>.model_json_schema()).
     - Here is following the JSON schema you must follow:\n\n __json_schema__.
     - No explanations, no comments, no prose outside of JSON.
 """

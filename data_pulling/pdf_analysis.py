@@ -1,4 +1,4 @@
-from common.settings import CAMELOT_MODE, OLLAMASETTINGS, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
+from common.settings import OLLAMASETTINGS, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
 from common.schema import AssetTable, AmountsOnly
 from typing import Optional
 import pandas as pd
@@ -103,7 +103,7 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
         raise RuntimeError(f"PDF table extraction failed for {pdf_path.name}") from e
     logger.info(f"Extracted {len(tables)} tables from PDF: {pdf_path.name}")
     
-    # 데이터프레임들을 LLM 입력용 JSON 혹은 Mardown으로 변환
+    # 데이터프레임들을 LLM 입력용 JSON 혹은 Mardown으로 변환 => 일반적으로 Markdown 형식이 더 안정적임. LLM 학습 시에 표 형식을 markdown 형태로 많이 접했을 가능성이 높음.
     try:
         #json_tables_str: str = jsonize_tables(tables)
         markdown_tables_str: str = markdownize_tables(tables)
@@ -112,12 +112,7 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
         raise RuntimeError(f"Table JSON conversion failed for {pdf_path.name}") from e
     logger.info(f"Converted tables to JSON format for LLM input.")
 
-
-    # user_prompt = (
-    #     USER_PROMPT_TEMPLATE
-    #     .replace("_tablenum_", str(len(tables)))
-    #     # .replace("__tables__", json_tables_str)
-    # )
+    #user_prompt = complete_user_prompt(json_tables_str, USER_PROMPT_TEMPLATE)
     user_prompt = complete_user_prompt(markdown_tables_str, USER_PROMPT_TEMPLATE)
     logger.info(f"Constructed user prompt for LLM.")  
 
@@ -128,7 +123,6 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
         try:
             response: ChatResponse = chat(
                 model=model,
-                #format = AmountsOnly.model_json_schema(),
                 format = "json",
                 messages = [
                     {"role": "system", "content": SYSTEM_PROMPT.replace("__json_schema__", json.dumps(AmountsOnly.model_json_schema()))},
