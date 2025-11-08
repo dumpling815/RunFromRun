@@ -4,13 +4,46 @@ from typing import Optional
 import pandas as pd
 from data_pulling.dataframe_process import get_tables_from_pdf
 from  pathlib import Path
-import json, logging
+import json, logging, time, functools
 from ollama import chat, ChatResponse, Options
 
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+# 실행시간 확인용 데코레이터
+def timing_decorator(func):
+    """
+    함수의 실행 시간을 측정하여 출력하는 데코레이터
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        args_repr = [repr(a) for a in args]
+        kwargs_repr = [f"{k}={v!r}" for k, v in kwargs.items()]
+        signature = ", ".join(args_repr + kwargs_repr)
+        logger.debug(f"Function call: {func.__name__}({signature})")
+        # 함수 시작 시간
+        start_time = time.time()
+        
+        try:
+            result = func(*args, **kwargs)
+            
+            end_time = time.time()
+            
+            # 3. 함수 실행 후: 반환 값 및 시간 출력
+            logger.debug(f"Function {func.__name__!r} returns: {result!r}")
+            logger.debug(f"Execution time: {end_time - start_time:.4f} second")
+            
+            return result
+        
+        except Exception as e:
+            logger.debug(f"Function: {func.__name__!r} spits Exception: {e}")
+            raise e
+        
+        # 함수 결과 반환
+    return wrapper
+
+@timing_decorator
 def markdownize_tables(tables: list[AssetTable]) -> str:
     markdown_tables = []
     for idx, df in enumerate(tables):
@@ -20,6 +53,7 @@ def markdownize_tables(tables: list[AssetTable]) -> str:
 
     return markdown_tables
 
+@timing_decorator
 def jsonize_tables(tables: list[AssetTable]) -> str:
     json_tables = []
     for idx, df in enumerate(tables):
@@ -34,12 +68,14 @@ def jsonize_tables(tables: list[AssetTable]) -> str:
 
     return json_tables
 
+@timing_decorator
 def complete_user_prompt(str_tables_list: list[str], template: str) -> str:
     tables_str = "\n\n".join(str_tables_list)
     user_prompt = template.replace("__tables__", tables_str).replace("_tablenum_", str(len(str_tables_list)))
     
     return user_prompt
 
+@timing_decorator
 def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
     # 홀수 개의 모델의 응답을 받아 해당 자산별로 중간값(median) 산출
     # 기본적으로 명확하지 않은 value에 대해서는 보수적으로 접근하여 더 작은 값을 선택하도록 함.
@@ -90,9 +126,11 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
 
 
 # Main PDF 분석 함수
+@timing_decorator
 def analyze_pdf_api_call(pdf_path: Path, stablecoin: str) -> AssetTable:
     raise NotImplementedError("API call method is not implemented yet.")
 
+@timing_decorator
 def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     # PDF에서 데이터프레임 추출
     try:
