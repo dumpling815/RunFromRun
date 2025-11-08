@@ -84,7 +84,6 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
         raise RuntimeError(f"PDF table extraction failed for {pdf_path.name}") from e
     logger.info(f"Extracted {len(tables)} tables from PDF: {pdf_path.name}")
     
-    print(tables)
     # 데이터프레임을 LLM 입력용 JSON 테이블로 변환
     try:
         json_tables_str: str = jsonize_tables(tables)
