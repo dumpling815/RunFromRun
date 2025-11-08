@@ -9,7 +9,7 @@ from ollama import chat, ChatResponse, Options
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 def jsonize_tables(tables: list[AssetTable]) -> str:
     json_tables = []
@@ -55,6 +55,7 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
 
         valid_votes_num = len(asset_amounts)        
         asset_amounts.sort()
+        logger.debug(f"Asset: {asset_name}, Valid votes: {valid_votes_num}, Values: {asset_amounts}")
         if valid_votes_num == 0:
             median_amount = 0.0
         elif valid_votes_num == 1: # 하나의 모델이라도 잡은 경우, 이유가 있기 때문에 해당값을 채택 TODO: 유효 개수가 1이라면 신뢰도가 낮은 값일 가능성도 존재함. 추후 보완 필요.
