@@ -127,7 +127,8 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
         try:
             response: ChatResponse = chat(
                 model=model,
-                format = AmountsOnly.model_json_schema(),
+                #format = AmountsOnly.model_json_schema(),
+                format = "json",
                 messages = [
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": user_prompt}
