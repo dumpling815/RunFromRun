@@ -22,7 +22,6 @@ def timing_decorator(func):
         kwargs_repr = [f"{k}={v!r}" for k, v in kwargs.items()]
         signature = ", ".join(args_repr + kwargs_repr)
         logger.debug(f"Function call: {func.__name__}({signature})")
-        # 함수 시작 시간
         start_time = time.time()
         
         try:
@@ -30,9 +29,7 @@ def timing_decorator(func):
             
             end_time = time.time()
             
-            # 3. 함수 실행 후: 반환 값 및 시간 출력
-            logger.debug(f"Function {func.__name__!r}")
-            logger.debug(f"Execution time: {end_time - start_time:.4f} second")
+            logger.debug(f"Function {func.__name__!r} Execution time: {end_time - start_time:.4f} seconds")
             
             return result
         
@@ -126,11 +123,9 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
 
 
 # Main PDF 분석 함수
-@timing_decorator
 def analyze_pdf_api_call(pdf_path: Path, stablecoin: str) -> AssetTable:
     raise NotImplementedError("API call method is not implemented yet.")
 
-@timing_decorator
 def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     # PDF에서 데이터프레임 추출
     try:
