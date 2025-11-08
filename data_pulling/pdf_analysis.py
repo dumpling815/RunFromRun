@@ -81,7 +81,7 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
         voted_assets[asset_name] = median_amount
         if asset_name != "total_amount":
             asset_sum += median_amount 
-            
+
     # total_amount가 표에서 추출 자체가 안되는 edge case 존재할 수 있기 때문에, total_amount는 asset_sum과 비교하여 더 큰 값을 선택
     voted_assets["total_amount"] = max(voted_assets["total_amount"], asset_sum)
     voted_assets["correction_value"] = max(voted_assets["total_amount"],asset_sum) - asset_sum
@@ -127,7 +127,7 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
         try:
             response: ChatResponse = chat(
                 model=model,
-                format = AmountsOnly.model_json_schema(),
+                format = json.dumps(AmountsOnly.model_json_schema()),
                 messages = [
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": user_prompt}
