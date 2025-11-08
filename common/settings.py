@@ -211,6 +211,7 @@ SYSTEM_PROMPT = """
 
     6) **Output Format**
     - Output **only** one JSON object that matches the AssetTable schema exactly.
+    - Here is following the JSON schema you must follow:\n\n __json_schema__.
     - No explanations, no comments, no prose outside of JSON.
 """
 USER_PROMPT_TEMPLATE = f"""
