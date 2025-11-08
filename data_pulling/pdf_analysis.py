@@ -132,6 +132,11 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
 
 
 if __name__ == "__main__":
+    import sys
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        stream=sys.stdout,
+    )
     pdf_path = Path("./test/report/USDT.pdf") # [DEBUG] 테스트용 PDF 경로
     result_table = analyze_pdf_local_llm(pdf_path, stablecoin="USDT")
-    print(result_table)
