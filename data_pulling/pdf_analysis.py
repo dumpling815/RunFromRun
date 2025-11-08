@@ -55,7 +55,6 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
         "corporate_bonds", "precious_metals", "digital_assets",
         "secured_loans", "other_investments", "custodial_concentrated_asset", "total_amount"
     ] 
-    # 
     voted_assets = {}
     asset_sum = 0.0
 
