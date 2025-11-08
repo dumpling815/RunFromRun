@@ -40,7 +40,6 @@ def timing_decorator(func):
         # 함수 결과 반환
     return wrapper
 
-@timing_decorator
 def markdownize_tables(tables: list[AssetTable]) -> str:
     markdown_tables = []
     for idx, df in enumerate(tables):
@@ -50,7 +49,6 @@ def markdownize_tables(tables: list[AssetTable]) -> str:
 
     return markdown_tables
 
-@timing_decorator
 def jsonize_tables(tables: list[AssetTable]) -> str:
     json_tables = []
     for idx, df in enumerate(tables):
@@ -65,7 +63,6 @@ def jsonize_tables(tables: list[AssetTable]) -> str:
 
     return json_tables
 
-@timing_decorator
 def complete_user_prompt(str_tables_list: list[str], template: str) -> str:
     tables_str = "\n\n".join(str_tables_list)
     user_prompt = template.replace("__tables__", tables_str).replace("_tablenum_", str(len(str_tables_list)))
@@ -123,9 +120,11 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
 
 
 # Main PDF 분석 함수
+@timing_decorator
 def analyze_pdf_api_call(pdf_path: Path, stablecoin: str) -> AssetTable:
     raise NotImplementedError("API call method is not implemented yet.")
 
+@timing_decorator
 def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     # PDF에서 데이터프레임 추출
     try:
