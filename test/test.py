@@ -4,46 +4,7 @@ from pathlib import Path
 import pandas as pd
 import camelot, fitz, re  # PyMuPDF
 
-SYSTEM_PROMPT = """
-You are a useful assistant that extracts asset information from a financial pdf report.
-Given the pdf report, extract the asset information and present it in a JSON format as specified below.
-The asset name can be differ in each reports context, use your financial knowledge to identify the assets.
-For example, when the CUSIP code is given instead of asset name, you should map it to the correct asset name.
 
-The JSON format is as follows:
-{
-  "cash_bank_deposits": {
-    "tier": <int>,
-    "qls_score": <float>,
-    "description": <str>,
-    "amount": <float>,
-    "ratio": <float | null>
-  },
-  "us_treasury_bills": {
-    "tier": <int>,
-    "qls_score": <float>,
-    "description": <str>,
-    "amount": <float>,
-    "ratio": <float | null>
-  },
-  ...
-  "total_ammount": <float>
-}
-
-If you cannot found specific asset information in the report, set the fields as follows:
-{
-    "tier": -1,
-    "qls_score": 0.0,
-    "description": "N/A",
-    "amount": 0.0,
-    "ratio": null
-}
-
-You should not put your own interpretions about report, comments or explanations in JSON format.
-Your only rule is to extract the asset information and present it in the specified JSON format.
-
-Ensure the JSON strictly follows this format and includes all required fields.
-"""
 USDC_PDF_PATH = "./report/USDC.pdf"
 USDT_PDF_PATH = "./report/USDT.pdf"
 FDUSD_PDF_PATH = "./report/FDUSD.pdf"
@@ -213,7 +174,7 @@ def post_process_tables(tables: camelot.core.TableList) -> list[pd.DataFrame]:
         
     return processed_tables
 
-pdf_path = USDT_PDF_PATH
+pdf_path = USDC_PDF_PATH
 
 # paths = [USDC_PDF_PATH, USDT_PDF_PATH, FDUSD_PDF_PATH, PYUSD_PDF_PATH, TUSD_PDF_PATH, USDP_PDF_PATH]
 # for i in paths:
@@ -224,40 +185,32 @@ pdf_path = USDT_PDF_PATH
 pdf_format = get_pdf_style(pdf_path)
 
 if pdf_format == "text":
-    # tables = camelot.read_pdf(
-    #     pdf_path, 
-    #     pages='2-end', 
-    #     flavor='stream',
-    #     strip_text='\n', # 셀 내부의 줄바꿈 문자가 계속 포함되는 문제가 있어 제거
-    #     split_text=False, # 셀 내부의 텍스트가 여러 셀로 분리되는 문제 방지, 기본값이지만 명시
-    #     row_tol=9, # 기본값은 2, 너무 낮은 경우에는 같은 행에 있는 Pdf의 텍스트가 df의 다른 행으로 분리되는 현상이 발생할 수 있음.
-    #     column_tol=1,
-    #     layout_kwargs={
-    #         "word_margin": 0.5,   # 단어 간 거리 허용 ↑
-    #         "line_margin": 0.8,   # 줄 병합 여유 ↑
-    #         "boxes_flow": -1      # 수평 정렬(표형 데이터)에 가중치
-    #     }
-    #     # process_background=True, # 배경에 음영 혹은 색상이 있는 경우 테이블 인식률 향상
-    #     # line_scale=60
-    #     )
     tables = camelot.read_pdf(
-        pdf_path,
-        pages = '2-end',
-        flavor = 'lattice',
-        strip_text='\n',
-    )
+        pdf_path, 
+        pages='2-end', 
+        flavor='stream',
+        strip_text='\n', # 셀 내부의 줄바꿈 문자가 계속 포함되는 문제가 있어 제거
+        split_text=False, # 셀 내부의 텍스트가 여러 셀로 분리되는 문제 방지, 기본값이지만 명시
+        row_tol=9, # 기본값은 2, 너무 낮은 경우에는 같은 행에 있는 Pdf의 텍스트가 df의 다른 행으로 분리되는 현상이 발생할 수 있음.
+        column_tol=1,
+        layout_kwargs={
+            "word_margin": 0.5,   # 단어 간 거리 허용 ↑
+            "line_margin": 0.8,   # 줄 병합 여유 ↑
+            "boxes_flow": -1      # 수평 정렬(표형 데이터)에 가중치
+        }
+        # process_background=True, # 배경에 음영 혹은 색상이 있는 경우 테이블 인식률 향상
+        # line_scale=60
+        )
+    # tables = camelot.read_pdf(
+    #     pdf_path,
+    #     pages = '2-end',
+    #     flavor = 'lattice',
+    #     strip_text='\n',
+    # )
     tables = filter_valid_tables(tables)
     tables = post_process_tables(tables)
     for i, table in enumerate(tables):
         print(f"Table {i}:")
         print(table)
 
-#print(type(tables))
-# pdf 형식이 텍스트 기반인지 이미지 기반인지 확인
-# pdf = fitz.open(pdf_path)
-# for i in range(len(pdf)):
-#     page = pdf[i]
-#     text = page.get_text("text")
-#     images = page.get_images()
-#     print(f"Page {i+1}: text length: {len(text.strip())}, image count: {len(images)}")
 
