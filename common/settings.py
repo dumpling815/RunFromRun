@@ -121,7 +121,7 @@ SYSTEM_PROMPT = """
 
         #### (3) gov_mmf
         **Definition:** Government or Treasury money market funds that invest primarily in U.S. Treasury securities and reverse repos backed by U.S. government collateral.  
-        **Examples:** “Government money market funds”, “Treasury MMF”, “Government Cash Reserves”, “Circle Reserve Fund”.  
+        **Examples:** "Money Market Funds", “Government money market funds”, “Treasury MMF”, “Government Cash Reserves”, “Circle Reserve Fund”.  
         **Source Terms:** USDC — “Cash held in Circle Reserve Fund”; PYUSD — “Government money market funds, at net asset value”; USDP — same; Tether — “Money Market Funds”.
 
         #### (4) other_deposits
