@@ -31,7 +31,7 @@ def timing_decorator(func):
             end_time = time.time()
             
             # 3. 함수 실행 후: 반환 값 및 시간 출력
-            logger.debug(f"Function {func.__name__!r} returns: {result!r}")
+            logger.debug(f"Function {func.__name__!r}")
             logger.debug(f"Execution time: {end_time - start_time:.4f} second")
             
             return result
