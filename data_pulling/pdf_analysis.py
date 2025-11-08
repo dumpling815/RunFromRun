@@ -4,41 +4,13 @@ from typing import Optional
 import pandas as pd
 from data_pulling.dataframe_process import get_tables_from_pdf
 from  pathlib import Path
-import json, logging, time, functools
+import json, logging, time 
 from ollama import chat, ChatResponse, Options
 
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-# 실행시간 확인용 데코레이터
-# def timing_decorator(func):
-#     """
-#     함수의 실행 시간을 측정하여 출력하는 데코레이터
-#     """
-#     @functools.wraps(func)
-#     def wrapper(*args, **kwargs):
-#         args_repr = [repr(a) for a in args]
-#         kwargs_repr = [f"{k}={v!r}" for k, v in kwargs.items()]
-#         signature = ", ".join(args_repr + kwargs_repr)
-#         logger.debug(f"Function call: {func.__name__}({signature})")
-#         start_time = time.time()
-        
-#         try:
-#             result = func(*args, **kwargs)
-            
-#             end_time = time.time()
-            
-#             logger.debug(f"Function {func.__name__!r} Execution time: {end_time - start_time:.4f} seconds")
-            
-#             return result
-        
-#         except Exception as e:
-#             logger.debug(f"Function: {func.__name__!r} spits Exception: {e}")
-#             raise e
-        
-#         # 함수 결과 반환
-#     return wrapper
 
 def markdownize_tables(tables: list[AssetTable]) -> str:
     markdown_tables = []
@@ -117,6 +89,11 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
 
     return result
 
+def delay_dict_to_list(delay_dict: dict[str,float]) -> list[(str,float)]:
+    result = []
+    for key, value in delay_dict.items():
+        result.append((key, value))
+    return result
 
 # Main PDF 분석 함수
 def analyze_pdf_api_call(pdf_path: Path, stablecoin: str) -> AssetTable:
@@ -124,13 +101,14 @@ def analyze_pdf_api_call(pdf_path: Path, stablecoin: str) -> AssetTable:
 
 def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     # PDF에서 데이터프레임 추출
+    delay_dict: dict[str,float] = {}
     e2e_start_time = time.time()
     try:
         tables: list[pd.DataFrame] = get_tables_from_pdf(pdf_path, stablecoin)
     except Exception as e:
         logger.error(f"Error extracting tables from PDF {pdf_path.name}: {e}")
         raise RuntimeError(f"PDF table extraction failed for {pdf_path.name}") from e
-    logger.info(f"Extracted {len(tables)} tables from PDF: {pdf_path.name}")
+    logger.debug(f"Extracted {len(tables)} tables from PDF: {pdf_path.name}")
     
     # 데이터프레임들을 LLM 입력용 JSON 혹은 Mardown으로 변환 => 일반적으로 Markdown 형식이 더 안정적임. LLM 학습 시에 표 형식을 markdown 형태로 많이 접했을 가능성이 높음.
     try:
@@ -139,16 +117,17 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     except Exception as e:
         logger.error(f"Error converting tables to JSON for PDF {pdf_path.name}: {e}")
         raise RuntimeError(f"Table JSON conversion failed for {pdf_path.name}") from e
-    logger.info(f"Converted tables to JSON format for LLM input.")
+    logger.debug(f"Converted tables to JSON format for LLM input.")
 
     #user_prompt = complete_user_prompt(json_tables_str, USER_PROMPT_TEMPLATE)
     user_prompt = complete_user_prompt(markdown_tables_str, USER_PROMPT_TEMPLATE)
-    logger.info(f"Constructed user prompt for LLM.")  
+    logger.debug(f"Constructed user prompt for LLM.")  
+    delay_dict["preprocess_delay"] = time.time() - e2e_start_time
 
     # LLM 호출 및 응답 수집
     amounts_only_list: list[AmountsOnly] = []
     for model in OLLAMASETTINGS.MODELS:
-        logger.info(f"Calling LLM model **{model}** for PDF: {pdf_path.name}")
+        logger.debug(f"Calling LLM model **{model}** for PDF: {pdf_path.name}")
         model_start_time = time.time()
         try:
             response: ChatResponse = chat(
@@ -163,7 +142,8 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
         except Exception as e:
             logger.error(f"LLM call failed for model {model} on PDF {pdf_path.name}: {e}")
             continue
-        logger.debug(f"{model} response time: {time.time() - model_start_time:.4f} seconds.")
+        delay_dict[f"{model} - latency"] = time.time() - model_start_time
+        logger.info(f"{model} latency: {delay_dict[f"{model} - latency"]:.4f} seconds.")
         content = response.message.content.strip()
         if not content:
             logger.warning(f"Empty response from model {model}. Skipping.")
@@ -176,7 +156,6 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
             logger.debug(f"Raw response content:\n{content}")
             continue
         logger.info(f"\n=== From {model} ===\n{response.message.content}")
-        # amounts_only = AmountsOnly.model_validate_json(response.message.content)
         amounts_only_list.append(amounts_only)
     
     voting_time_start = time.time()
@@ -185,10 +164,14 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     except Exception as e:
         logger.error(f"Error during LLM voting for PDF {pdf_path.name}: {e}")
         raise RuntimeError(f"LLM voting failed for {pdf_path.name}") from e
-    logger.debug(f"LLM voting completed in {time.time() - voting_time_start:.4f} seconds.")
-    logger.debug(f"End-to-end processing time: {time.time() - e2e_start_time:.4f} seconds")
+    delay_dict["voting_delay"] = time.time() - voting_time_start
+    delay_dict["e2e_delay"] = time.time() - e2e_start_time
+    logger.info(f"LLM voting completed in {delay_dict['voting_delay']:.4f} seconds.")
+    logger.info(f"End-to-end processing time: {delay_dict['e2e_delay']:.4f} seconds")
     logger.info(f"Completed LLM voting for PDF: {pdf_path.name}")
     logger.info(f"\n{asset_table}")
+    delay_list = delay_dict_to_list(delay_dict)
+    logger.info(f"Delay breakdown: {delay_list}")
     return asset_table
 
 
