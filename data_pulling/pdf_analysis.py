@@ -81,7 +81,9 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
         voted_assets[asset_name] = median_amount
         if asset_name != "total_amount":
             asset_sum += median_amount 
-    
+            
+    # total_amount가 표에서 추출 자체가 안되는 edge case 존재할 수 있기 때문에, total_amount는 asset_sum과 비교하여 더 큰 값을 선택
+    voted_assets["total_amount"] = max(voted_assets["total_amount"], asset_sum)
     voted_assets["correction_value"] = max(voted_assets["total_amount"],asset_sum) - asset_sum
     result:AssetTable =  AmountsOnly.model_validate(voted_assets).to_asset_table()
 
@@ -146,8 +148,7 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
             logger.error(f"Invalid JSON from model {model}: {e}")
             logger.debug(f"Raw response content:\n{content}")
             continue
-        logger.info(f"\n=== From {model} ===")
-        logger.info(f"\n{response.message.content}")
+        logger.info(f"\n=== From {model} ===\n{response.message.content}")
         # amounts_only = AmountsOnly.model_validate_json(response.message.content)
         amounts_only_list.append(amounts_only)
     
