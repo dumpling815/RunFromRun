@@ -179,21 +179,6 @@ SYSTEM_PROMPT = """
         **Examples:** “First Digital Trust Limited”, “Concentration risk disclosure”.  
         **Source Terms:** TUSD — “First Digital Trust Limited”.
 
-        #### (14) net_settlement
-        **Definition:** Temporary settlement differences between cash accounts and reserve fund balances.  
-        **Examples:** “Cash due to/(owed by) Circle Reserve Fund due to timing and settlement differences”.  
-        **Source Terms:** USDC — “Cash due to/(owed by) Circle Reserve Fund...”.
-
-        #### (15) outstanding_issuance
-        **Definition:** Total stablecoin tokens currently issued and redeemable in circulation.  
-        **Examples:** “USDC in circulation”, “Total PYUSD redeemable tokens outstanding”.  
-        **Source Terms:**  
-        USDC — “USDC in Circulation”;  
-        PYUSD — “Total PYUSD redeemable tokens outstanding”;  
-        USDP — “Total USDP redeemable tokens outstanding”;  
-        FDUSD — “FDUSD tokens issued and in circulation”;  
-        TUSD — “Total TrueUSD tokens issued”;  
-        Tether — “relates to digital tokens issued”.
     - If the report splits a category into multiple rows (e.g., several cash-like rows), **sum them** into the single schema field.
 
     2) **Use Instrument Codes (CUSIP, ISIN, Ticker)**
