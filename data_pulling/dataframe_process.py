@@ -1,6 +1,7 @@
 # Pipeline for testing RfR server.
 import pandas as pd
 import camelot, fitz, re # fitz for PyMuPDF
+from common.settings import CAMELOT_MODE
 
 # PDF 분석 함수
 def get_pdf_style(pdf_path, sample_pages=3):
@@ -160,19 +161,37 @@ def post_process_tables(tables: camelot.core.TableList) -> list[pd.DataFrame]:
         
     return processed_tables
 
-def get_tables_from_pdf(pdf_path: str, camelot_mode: str) -> list[pd.DataFrame]:
+def get_tables_from_pdf(pdf_path: str, stablecoin: str) -> list[pd.DataFrame]:
     try:
         pdf_format = get_pdf_style(pdf_path)
     except Exception as e:
         raise RuntimeError(f"Failed to determine PDF style for {pdf_path}: {e}") from e
     if pdf_format == "text":
         try:
-            tables = camelot.read_pdf(
-                pdf_path,
-                pages = '2-end',
-                flavor = camelot_mode,
-                strip_text='\n',
-            )
+            if CAMELOT_MODE[stablecoin] == "lattice":
+                tables = camelot.read_pdf(
+                    pdf_path,
+                    pages = '2-end',
+                    flavor = CAMELOT_MODE[stablecoin],
+                    strip_text='\n',
+                )
+            elif CAMELOT_MODE[stablecoin] == "stream":  # stream 모드
+                tables = camelot.read_pdf(
+                    pdf_path, 
+                    pages='2-end', 
+                    flavor= CAMELOT_MODE[stablecoin],
+                    strip_text='\n', # 셀 내부의 줄바꿈 문자가 계속 포함되는 문제가 있어 제거
+                    split_text=False, # 셀 내부의 텍스트가 여러 셀로 분리되는 문제 방지, 기본값이지만 명시
+                    row_tol=9, # 기본값은 2, 너무 낮은 경우에는 같은 행에 있는 Pdf의 텍스트가 df의 다른 행으로 분리되는 현상이 발생할 수 있음.
+                    column_tol=1,
+                    layout_kwargs={
+                        "word_margin": 0.5,   # 단어 간 거리 허용 ↑
+                        "line_margin": 0.8,   # 줄 병합 여유 ↑
+                        "boxes_flow": -1      # 수평 정렬(표형 데이터)에 가중치
+                    }
+                )
+            else: # Maybe hybrid mode
+                raise NotImplementedError(f"Camelot mode {CAMELOT_MODE[stablecoin]} not supported now.")
         except Exception as e:
             raise RuntimeError(f"Camelot failed to extract tables from {pdf_path}: {e}") from e
         try:

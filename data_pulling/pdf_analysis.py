@@ -11,6 +11,15 @@ from ollama import chat, ChatResponse, Options
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+def markdownize_tables(tables: list[AssetTable]) -> str:
+    markdown_tables = []
+    for idx, df in enumerate(tables):
+        # Keep up to MAX rows per table to avoid oversized prompts (adjust as needed)
+        markdown_table = df.to_markdown(index=False)
+        markdown_tables.append(markdown_table)
+
+    return markdown_tables
+
 def jsonize_tables(tables: list[AssetTable]) -> str:
     json_tables = []
     for idx, df in enumerate(tables):
@@ -25,6 +34,12 @@ def jsonize_tables(tables: list[AssetTable]) -> str:
     json_tables_str = json.dumps(json_tables, ensure_ascii=False)
 
     return json_tables_str
+
+def complete_user_prompt(str_tables_list: list[str], template: str) -> str:
+    tables_str = "\n\n".join(str_tables_list)
+    user_prompt = template.replace("__tables__", tables_str).replace("_tablenum_", str(len(str_tables_list)))
+    
+    return user_prompt
 
 def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
     # 홀수 개의 모델의 응답을 받아 해당 자산별로 중간값(median) 산출
@@ -81,26 +96,28 @@ def analyze_pdf_api_call(pdf_path: Path, stablecoin: str) -> AssetTable:
 def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     # PDF에서 데이터프레임 추출
     try:
-        tables: list[pd.DataFrame] = get_tables_from_pdf(pdf_path, camelot_mode=CAMELOT_MODE[stablecoin])
+        tables: list[pd.DataFrame] = get_tables_from_pdf(pdf_path, stablecoin)
     except Exception as e:
         logger.error(f"Error extracting tables from PDF {pdf_path.name}: {e}")
         raise RuntimeError(f"PDF table extraction failed for {pdf_path.name}") from e
     logger.info(f"Extracted {len(tables)} tables from PDF: {pdf_path.name}")
     
-    # 데이터프레임을 LLM 입력용 JSON 테이블로 변환
+    # 데이터프레임들을 LLM 입력용 JSON 혹은 Mardown으로 변환
     try:
-        json_tables_str: str = jsonize_tables(tables)
+        #json_tables_str: str = jsonize_tables(tables)
+        markdown_tables_str: str = markdownize_tables(tables)
     except Exception as e:
         logger.error(f"Error converting tables to JSON for PDF {pdf_path.name}: {e}")
         raise RuntimeError(f"Table JSON conversion failed for {pdf_path.name}") from e
     logger.info(f"Converted tables to JSON format for LLM input.")
 
 
-    user_content = (
-        USER_PROMPT_TEMPLATE
-        .replace("_tablenum_", str(len(tables)))
-        .replace("__tables__", json_tables_str)
-    )
+    # user_prompt = (
+    #     USER_PROMPT_TEMPLATE
+    #     .replace("_tablenum_", str(len(tables)))
+    #     # .replace("__tables__", json_tables_str)
+    # )
+    user_prompt = complete_user_prompt(markdown_tables_str, USER_PROMPT_TEMPLATE)
 
     # LLM 호출 및 응답 수집
     amounts_only_list: list[AmountsOnly] = []
@@ -111,7 +128,7 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
                 format = AmountsOnly.model_json_schema(),
                 messages = [
                     {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": user_content}
+                    {"role": "user", "content": user_prompt}
                 ],
                 options = Options(temperature=0.0)
             )

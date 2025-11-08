@@ -215,7 +215,7 @@ SYSTEM_PROMPT = """
 """
 USER_PROMPT_TEMPLATE = f"""
     You will get _tablenum_ dataframes the follwing dataframe extracted from a financial report PDF, extract the asset information and fill the given JSON format as specified below.
-    Here is the extracted dataframe: __tables__.
+    Here is the extracted dataframe: \n\n__tables__.
 """
 
 if __name__ == "__main__":
