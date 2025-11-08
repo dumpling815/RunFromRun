@@ -213,7 +213,7 @@ SYSTEM_PROMPT = """
 
     6) **Output Format**
     - Output: **only** one JSON object that matches the given schema exactly.
-    - Following JSON schema is created by json.dumps(<pydantic BaseModel>.model_json_schema()).
+    - Note that following JSON schema is created by json.dumps(<pydantic BaseModel>.model_json_schema()).
     - Here is following the JSON schema you must follow:\n\n __json_schema__.
     - No explanations, no comments, no prose outside of JSON.
 """
