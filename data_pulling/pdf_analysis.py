@@ -124,6 +124,7 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     # LLM 호출 및 응답 수집
     amounts_only_list: list[AmountsOnly] = []
     for model in OLLAMASETTINGS.MODELS:
+        logger.info(f"Calling LLM model **{model}** for PDF: {pdf_path.name}")
         try:
             response: ChatResponse = chat(
                 model=model,
