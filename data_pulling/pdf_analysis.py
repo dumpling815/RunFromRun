@@ -31,9 +31,8 @@ def jsonize_tables(tables: list[AssetTable]) -> str:
             "n_cols": int(df.shape[1]),
             "rows": sample.values.tolist()
         })
-    json_tables_str = json.dumps(json_tables, ensure_ascii=False)
 
-    return json_tables_str
+    return json_tables
 
 def complete_user_prompt(str_tables_list: list[str], template: str) -> str:
     tables_str = "\n\n".join(str_tables_list)
@@ -118,6 +117,7 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     #     # .replace("__tables__", json_tables_str)
     # )
     user_prompt = complete_user_prompt(markdown_tables_str, USER_PROMPT_TEMPLATE)
+    logger.info(f"Constructed user prompt for LLM.")  
 
     # LLM 호출 및 응답 수집
     amounts_only_list: list[AmountsOnly] = []
@@ -135,9 +135,20 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
         except Exception as e:
             logger.error(f"LLM call failed for model {model} on PDF {pdf_path.name}: {e}")
             continue
+        content = response.message.content.strip()
+        if not content:
+            logger.warning(f"Empty response from model {model}. Skipping.")
+            continue
+
+        try:
+            amounts_only = AmountsOnly.model_validate_json(content)
+        except Exception as e:
+            logger.error(f"Invalid JSON from model {model}: {e}")
+            logger.debug(f"Raw response content:\n{content}")
+            continue
         logger.info(f"=== From {model} ===")
         logger.info(f"{response.message.content}")
-        amounts_only = AmountsOnly.model_validate_json(response.message.content)
+        # amounts_only = AmountsOnly.model_validate_json(response.message.content)
         amounts_only_list.append(amounts_only)
     
     try:
