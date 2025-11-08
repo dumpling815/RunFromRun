@@ -16,6 +16,8 @@ def parse_from_string_env(value: str, is_num: bool) -> list | dict:
         result = value[1:-1].replace('"',"").replace("'","").split(",")
         if is_num:
             result = [float(item.strip()) for item in result]
+        else:
+            result = [item.strip() for item in result] # sanitization
     elif value.startswith("{") and value.endswith("}"):
         result = {}
         key_val_pair_list = value[1:-1].strip().split(",")
