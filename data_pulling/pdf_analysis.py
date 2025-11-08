@@ -130,7 +130,7 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
                 #format = AmountsOnly.model_json_schema(),
                 format = "json",
                 messages = [
-                    {"role": "system", "content": SYSTEM_PROMPT.replace("__json_schema__", AmountsOnly.model_json_schema())},
+                    {"role": "system", "content": SYSTEM_PROMPT.replace("__json_schema__", json.dumps(AmountsOnly.model_json_schema()))},
                     {"role": "user", "content": user_prompt}
                 ],
                 options = Options(temperature=0.0)
