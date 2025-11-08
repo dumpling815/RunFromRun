@@ -216,6 +216,23 @@ SYSTEM_PROMPT = """
     - Note that following JSON schema is created by json.dumps(<pydantic BaseModel>.model_json_schema()).
     - Here is following the JSON schema you must follow:\n\n __json_schema__.
     - No explanations, no comments, no prose outside of JSON.
+    - Example Output: (you must fill <your_value> with the correct number you extracted)
+    {
+        "cash_bank_deposits": <your_value>,
+        "us_treasury_bills": <your_value>,
+        "gov_mmf": <your_value>,
+        "other_deposits": <your_value>,
+        "repo_overnight_term": <your_value>,
+        "non_us_treasury_bills": <your_value>,
+        "us_treasury_other_notes_bonds": <your_value>,
+        "corporate_bonds": <your_value>,
+        "precious_metals": <your_value>,
+        "digital_assets": <your_value>,
+        "secured_loans": <your_value>,
+        "other_investments": <your_value>,
+        "custodial_concentrated_asset": <your_value>,
+        "total_amount": <your_value>
+    }
 """
 USER_PROMPT_TEMPLATE = f"""
     You will get _tablenum_ dataframes the follwing dataframe extracted from a financial report PDF, extract the asset information and fill the given JSON format as specified below.
