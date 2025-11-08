@@ -46,7 +46,7 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
         none_count = 0
         for amounts in amounts_list:
             val:Optional[float] = getattr(amounts, asset_name)
-            if val is not None or val == 0.0:
+            if val is not None:
                 asset_amounts.append(float(val))
             else:
                 none_count += 1
