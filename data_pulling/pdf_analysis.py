@@ -27,9 +27,14 @@ def jsonize_tables(tables: list[AssetTable]) -> str:
     return json_tables_str
 
 def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
+    # 홀수 개의 모델의 응답을 받아 해당 자산별로 중간값(median) 산출
+    # 기본적으로 명확하지 않은 value에 대해서는 보수적으로 접근하여 더 작은 값을 선택하도록 함.
+    # 왜냐하면 더 작은 값을 선택하면 total_amount를 맞추기 위해 correction_value가 더 커짐.
+    # 그리고 correction_value의 ratio는 추출된 데이터의 신뢰도를 나타내기 때문에 더욱 보수적인 접근을 수행함.
+    # 모델이 None으로 응답한 것과, 0.0으로 응답한 것은 구별되어야 함.
+    # 0.0은 해당 자산이 없다는 의미이나, None은 모델이 해당 자산에 대해 판단하지 못했다는 의미이기 때문.
     if amounts_list is None or len(amounts_list) == 0:
         return AssetTable(total_amount=0.0)
-    # 홀수 개의 모델의 응답을 받아 해당 자산별로 중간값(median) 산출
     ASSET_NAMES = [
         "cash_bank_deposits", "us_treasury_bills", "gov_mmf",
         "repo_overnight_term", "non_us_treasury_bills", "us_treasury_other_notes_bonds",
@@ -53,7 +58,8 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
         if valid_votes_num == 0:
             median_amount = 0.0
         elif valid_votes_num == 1: # 하나의 모델이라도 잡은 경우, 이유가 있기 때문에 해당값을 채택 TODO: 유효 개수가 1이라면 신뢰도가 낮은 값일 가능성도 존재함. 추후 보완 필요.
-            median_amount = asset_amounts[0]
+            # deprecated: median_amount = asset_amounts[0]
+            median_amount = 0.0 # 더 보수적으로 판단하는 것이 맞다고 여겨짐.
         else:
             median_amount = asset_amounts[(valid_votes_num - 1) // 2] # n이 짝수여도 같은 방식 적용 : 더 작은 값을 선택하여 더 보수적으로 접근
         
