@@ -9,7 +9,7 @@ from ollama import chat, ChatResponse, Options
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 def markdownize_tables(tables: list[AssetTable]) -> str:
