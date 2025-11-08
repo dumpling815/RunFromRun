@@ -12,33 +12,33 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 # 실행시간 확인용 데코레이터
-def timing_decorator(func):
-    """
-    함수의 실행 시간을 측정하여 출력하는 데코레이터
-    """
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        args_repr = [repr(a) for a in args]
-        kwargs_repr = [f"{k}={v!r}" for k, v in kwargs.items()]
-        signature = ", ".join(args_repr + kwargs_repr)
-        logger.debug(f"Function call: {func.__name__}({signature})")
-        start_time = time.time()
+# def timing_decorator(func):
+#     """
+#     함수의 실행 시간을 측정하여 출력하는 데코레이터
+#     """
+#     @functools.wraps(func)
+#     def wrapper(*args, **kwargs):
+#         args_repr = [repr(a) for a in args]
+#         kwargs_repr = [f"{k}={v!r}" for k, v in kwargs.items()]
+#         signature = ", ".join(args_repr + kwargs_repr)
+#         logger.debug(f"Function call: {func.__name__}({signature})")
+#         start_time = time.time()
         
-        try:
-            result = func(*args, **kwargs)
+#         try:
+#             result = func(*args, **kwargs)
             
-            end_time = time.time()
+#             end_time = time.time()
             
-            logger.debug(f"Function {func.__name__!r} Execution time: {end_time - start_time:.4f} seconds")
+#             logger.debug(f"Function {func.__name__!r} Execution time: {end_time - start_time:.4f} seconds")
             
-            return result
+#             return result
         
-        except Exception as e:
-            logger.debug(f"Function: {func.__name__!r} spits Exception: {e}")
-            raise e
+#         except Exception as e:
+#             logger.debug(f"Function: {func.__name__!r} spits Exception: {e}")
+#             raise e
         
-        # 함수 결과 반환
-    return wrapper
+#         # 함수 결과 반환
+#     return wrapper
 
 def markdownize_tables(tables: list[AssetTable]) -> str:
     markdown_tables = []
@@ -69,7 +69,6 @@ def complete_user_prompt(str_tables_list: list[str], template: str) -> str:
     
     return user_prompt
 
-@timing_decorator
 def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
     # 홀수 개의 모델의 응답을 받아 해당 자산별로 중간값(median) 산출
     # 기본적으로 명확하지 않은 value에 대해서는 보수적으로 접근하여 더 작은 값을 선택하도록 함.
@@ -120,13 +119,12 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
 
 
 # Main PDF 분석 함수
-@timing_decorator
 def analyze_pdf_api_call(pdf_path: Path, stablecoin: str) -> AssetTable:
     raise NotImplementedError("API call method is not implemented yet.")
 
-@timing_decorator
 def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     # PDF에서 데이터프레임 추출
+    e2e_start_time = time.time()
     try:
         tables: list[pd.DataFrame] = get_tables_from_pdf(pdf_path, stablecoin)
     except Exception as e:
@@ -151,6 +149,7 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     amounts_only_list: list[AmountsOnly] = []
     for model in OLLAMASETTINGS.MODELS:
         logger.info(f"Calling LLM model **{model}** for PDF: {pdf_path.name}")
+        model_start_time = time.time()
         try:
             response: ChatResponse = chat(
                 model=model,
@@ -164,6 +163,7 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
         except Exception as e:
             logger.error(f"LLM call failed for model {model} on PDF {pdf_path.name}: {e}")
             continue
+        logger.debug(f"{model} response time: {time.time() - model_start_time:.4f} seconds.")
         content = response.message.content.strip()
         if not content:
             logger.warning(f"Empty response from model {model}. Skipping.")
@@ -179,11 +179,14 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
         # amounts_only = AmountsOnly.model_validate_json(response.message.content)
         amounts_only_list.append(amounts_only)
     
+    voting_time_start = time.time()
     try:
         asset_table = llm_vote_amounts(amounts_only_list)
     except Exception as e:
         logger.error(f"Error during LLM voting for PDF {pdf_path.name}: {e}")
         raise RuntimeError(f"LLM voting failed for {pdf_path.name}") from e
+    logger.debug(f"LLM voting completed in {time.time() - voting_time_start:.4f} seconds.")
+    logger.debug(f"End-to-end processing time: {time.time() - e2e_start_time:.4f} seconds")
     logger.info(f"Completed LLM voting for PDF: {pdf_path.name}")
     logger.info(f"\n{asset_table}")
     return asset_table
