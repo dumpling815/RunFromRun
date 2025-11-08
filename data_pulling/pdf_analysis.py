@@ -74,8 +74,8 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
 
 
 # Main PDF 분석 함수
-def analyze_pdf_api_call(pdf_path: Path) -> AssetTable:
-    pass
+def analyze_pdf_api_call(pdf_path: Path, stablecoin: str) -> AssetTable:
+    raise NotImplementedError("API call method is not implemented yet.")
 
 def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     # PDF에서 데이터프레임 추출
