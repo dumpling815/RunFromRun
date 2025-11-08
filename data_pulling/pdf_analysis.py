@@ -146,8 +146,8 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
             logger.error(f"Invalid JSON from model {model}: {e}")
             logger.debug(f"Raw response content:\n{content}")
             continue
-        logger.info(f"=== From {model} ===")
-        logger.info(f"{response.message.content}")
+        logger.info(f"\n=== From {model} ===")
+        logger.info(f"\n{response.message.content}")
         # amounts_only = AmountsOnly.model_validate_json(response.message.content)
         amounts_only_list.append(amounts_only)
     
