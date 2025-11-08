@@ -36,7 +36,7 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
     if amounts_list is None or len(amounts_list) == 0:
         return AssetTable(total_amount=0.0)
     ASSET_NAMES = [
-        "cash_bank_deposits", "us_treasury_bills", "gov_mmf",
+        "cash_bank_deposits", "us_treasury_bills", "gov_mmf", "other_deposits",
         "repo_overnight_term", "non_us_treasury_bills", "us_treasury_other_notes_bonds",
         "corporate_bonds", "precious_metals", "digital_assets",
         "secured_loans", "other_investments", "custodial_concentration", "total_amount"
