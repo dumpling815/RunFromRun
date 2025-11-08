@@ -55,7 +55,7 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
         elif valid_votes_num == 1: # 하나의 모델이라도 잡은 경우, 이유가 있기 때문에 해당값을 채택 TODO: 유효 개수가 1이라면 신뢰도가 낮은 값일 가능성도 존재함. 추후 보완 필요.
             median_amount = asset_amounts[0]
         else:
-            median_amount = asset_amounts[valid_votes_num - 1 // 2] # n이 짝수여도 같은 방식 적용 : 더 작은 값을 선택하여 더 보수적으로 접근
+            median_amount = asset_amounts[(valid_votes_num - 1) // 2] # n이 짝수여도 같은 방식 적용 : 더 작은 값을 선택하여 더 보수적으로 접근
         
         voted_assets[asset_name] = median_amount
         if asset_name != "total_amount":
