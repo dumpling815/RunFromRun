@@ -27,7 +27,7 @@ class AssetTable(BaseModel):
     # Tier 4 Assets 
     secured_loans: Asset = Asset(tier=4, qls_score=0.2, amount=None, ratio=None)
     other_investments: Asset = Asset(tier=4, qls_score=0.1, amount=None, ratio=None)
-    custodial_concentration: Asset = Asset(tier=4, qls_score=0.0, amount=None, ratio=None)
+    custodial_concentrated_asset: Asset = Asset(tier=4, qls_score=0.0, amount=None, ratio=None)
     # Correction Value
     # LLM Voting으로 총액이 산출된 후, 자산별 합계가 총액과 일치하지 않는 경우 이를 보정하기 위한 항목.
     # 1 - correction_value.ratio를 신뢰도 지표로 사용할 수 있음 (보정치로 계산된 비율이 높다 => 신뢰도가 낮다)
@@ -39,7 +39,7 @@ class AssetTable(BaseModel):
         1: ["cash_bank_deposits", "us_treasury_bills", "gov_mmf", "other_deposits"],
         2: ["repo_overnight_term", "non_us_treasury_bills", "us_treasury_other_notes_bonds"],
         3: ["corporate_bonds", "precious_metals", "digital_assets"],
-        4: ["secured_loans", "other_investments", "custodial_concentration"],
+        4: ["secured_loans", "other_investments", "custodial_concentrated_asset"],
     }
 
     # Pretty-printing helpers and __str__ override
@@ -47,7 +47,7 @@ class AssetTable(BaseModel):
         "cash_bank_deposits", "us_treasury_bills", "gov_mmf", "other_deposits",
         "repo_overnight_term", "non_us_treasury_bills", "us_treasury_other_notes_bonds",
         "corporate_bonds", "precious_metals", "digital_assets",
-        "secured_loans", "other_investments", "custodial_concentration", "correction_value"
+        "secured_loans", "other_investments", "custodial_concentrated_asset", "correction_value"
     ]
 
     @staticmethod
@@ -120,7 +120,7 @@ class AmountsOnly(BaseModel):
     
     secured_loans: Optional[float] = Field(None, ge=0)
     other_investments: Optional[float] = Field(None, ge=0) 
-    custodial_concentration: Optional[float] = Field(None, ge=0)
+    custodial_concentrated_asset: Optional[float] = Field(None, ge=0)
 
     # correction value는 LLM 응답 후 계산되므로 입력 모델에는 포함하지 않음.
 
