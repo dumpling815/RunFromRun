@@ -21,7 +21,7 @@ class AssetTable(BaseModel):
     non_us_treasury_bills: Asset = Asset(tier=2, qls_score=0.85, amount=None, ratio=None)
     us_treasury_other_notes_bonds: Asset = Asset(tier=2, qls_score=0.8, amount=None, ratio=None)
     # Tier 3 Assets
-    coporate_bonds: Asset = Asset(tier=3, qls_score=0.7, amount=None, ratio=None)
+    corporate_bonds: Asset = Asset(tier=3, qls_score=0.7, amount=None, ratio=None)
     precious_metals: Asset = Asset(tier=3, qls_score=0.6, amount=None, ratio=None)
     digital_assets: Asset = Asset(tier=3, qls_score=0.4, amount=None, ratio=None)
     # Tier 4 Assets 
@@ -38,7 +38,7 @@ class AssetTable(BaseModel):
     tier_table: dict[int, list[str]] = {
         1: ["cash_bank_deposits", "us_treasury_bills", "gov_mmf", "other_deposits"],
         2: ["repo_overnight_term", "non_us_treasury_bills", "us_treasury_other_notes_bonds"],
-        3: ["coporate_bonds", "precious_metals", "digital_assets"],
+        3: ["corporate_bonds", "precious_metals", "digital_assets"],
         4: ["secured_loans", "other_investments", "custodial_concentration"],
     }
 
@@ -46,7 +46,7 @@ class AssetTable(BaseModel):
     _FIELD_ORDER = [
         "cash_bank_deposits", "us_treasury_bills", "gov_mmf", "other_deposits",
         "repo_overnight_term", "non_us_treasury_bills", "us_treasury_other_notes_bonds",
-        "coporate_bonds", "precious_metals", "digital_assets",
+        "corporate_bonds", "precious_metals", "digital_assets",
         "secured_loans", "other_investments", "custodial_concentration", "correction_value"
     ]
 
@@ -114,7 +114,7 @@ class AmountsOnly(BaseModel):
     non_us_treasury_bills: Optional[float] = Field(None, ge=0)
     us_treasury_other_notes_bonds: Optional[float] = Field(None, ge=0)
     
-    coporate_bonds: Optional[float] = Field(None, ge=0)
+    corporate_bonds: Optional[float] = Field(None, ge=0)
     precious_metals: Optional[float] = Field(None, ge=0)
     digital_assets: Optional[float] = Field(None, ge=0)
     

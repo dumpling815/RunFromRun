@@ -145,7 +145,7 @@ SYSTEM_PROMPT = """
         **Source Terms:** Tether — “Non-U.S. Treasury Bills”.
 
         #### (7) us_treasury_other_notes_bonds
-        **Definition:** U.S. Treasury notes or bonds (coupon-bearing securities, maturity >1 year).  
+        **Definition:** U.S. Treasury notes or bonds (coupon-bearing securities, maturity >1 year). NOTE THAT THIS EXCLUDES COPORATE BONDS.
         **Examples:** “U.S. Treasury Notes”, “U.S. Treasury Bonds”, “TIPS (U.S.)”.  
         **Source Terms:** Appears in some extended reports where longer-maturity Treasuries are held separately.
 

@@ -33,7 +33,7 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
     ASSET_NAMES = [
         "cash_bank_deposits", "us_treasury_bills", "gov_mmf",
         "repo_overnight_term", "non_us_treasury_bills", "us_treasury_other_notes_bonds",
-        "coporate_bonds", "precious_metals", "digital_assets",
+        "corporate_bonds", "precious_metals", "digital_assets",
         "secured_loans", "other_investments", "custodial_concentration", "total_amount"
     ] 
     # 
@@ -59,7 +59,7 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
         elif n == 1: # 하나의 모델이라도 잡은 경우, 이유가 있기 때문에 해당값을 채택
             median_amount = asset_amounts[0]
         else:
-            median_amount = asset_amounts[n // 2] # n이 짝수여도 같은 방식 적용 : 더 작은 값을 선택하여 더 보수적으로 접근
+            median_amount = asset_amounts[n - 1 // 2] # n이 짝수여도 같은 방식 적용 : 더 작은 값을 선택하여 더 보수적으로 접근
         
         voted_assets[asset_name] = median_amount
         if asset_name != "total_amount":
