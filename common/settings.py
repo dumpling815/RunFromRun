@@ -102,6 +102,8 @@ SYSTEM_PROMPT = """
     Your job is to read noisy tables extracted from stablecoin issuers’ PDF reports and fill a strict JSON object that matches the provided schema (AssetTable).
     Note that the tables may contain extraction errors, inconsistent formatting, footnotes, or other noise.
     The only attribute you have to fill correctly is the asset's `amount` in US dollars.
+    Tables with exactly the same format but different dates and values ​​may be input. In such cases, only the most recent table should be used.
+    Occasionally, an error in the table extraction library can result in consecutive imports of identical tables. In such cases, only tables with more data should be used.
     ## Your tasks (do them in order, but only OUTPUT the final JSON):
 
     1) **Identify & Normalize Asset Lines**

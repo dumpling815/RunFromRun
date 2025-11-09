@@ -124,7 +124,7 @@ def analyze_pdf_api_call(pdf_path: Path, stablecoin: str) -> AssetTable:
     raise NotImplementedError("API call method is not implemented yet.")
 
 def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
-    # PDF에서 데이터프레임 추출
+    # ============== 1. PDF에서 데이터프레임 추출 ==============
     delay_dict: dict[str,float] = {}
     e2e_start_time = time.time()
     try:
@@ -134,7 +134,8 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
         raise RuntimeError(f"PDF table extraction failed for {pdf_path.name}") from e
     logger.debug(f"Extracted {len(tables)} tables from PDF: {pdf_path.name}")
     
-    # 데이터프레임들을 LLM 입력용 JSON 혹은 Mardown으로 변환 => 일반적으로 Markdown 형식이 더 안정적임. LLM 학습 시에 표 형식을 markdown 형태로 많이 접했을 가능성이 높음.
+    # ============== 2. 데이터프레임들을 LLM 입력용 JSON 혹은 Mardown으로 변환 ==============
+    # => 일반적으로 Markdown 형식이 더 안정적임. LLM 학습 시에 표 형식을 markdown 형태로 많이 접했을 가능성이 높음.
     try:
         #json_tables_str: str = jsonize_tables(tables)
         markdown_tables_str: str = markdownize_tables(tables)
@@ -144,13 +145,14 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     logger.debug(f"Converted tables to JSON format for LLM input.")
 
 
-
+    # ============== 3. User Prompt에 string으로 변환된 표 주입 ==============
     #user_prompt = complete_user_prompt(json_tables_str, USER_PROMPT_TEMPLATE)
     user_prompt = complete_user_prompt(markdown_tables_str, USER_PROMPT_TEMPLATE)
     logger.debug(f"Constructed user prompt for LLM.")  
     delay_dict["preprocess_delay"] = time.time() - e2e_start_time
 
-    # LLM 호출 및 응답 수집
+
+    # ============== 4. LLM 호출 및 응답 수집 ==============
     amounts_only_list: list[AmountsOnly] = []
     for model in OLLAMASETTINGS.MODELS:
         logger.debug(f"Calling LLM model **{model}** for PDF: {pdf_path.name}")
@@ -175,6 +177,7 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
             logger.warning(f"Empty response from model {model}. Skipping.")
             continue
 
+        # ============== 5. JSON 응답을 pydantic model 리스트에 append ==============
         try:
             amounts_only = AmountsOnly.model_validate_json(content)
         except Exception as e:
@@ -184,6 +187,7 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
         logger.info(f"\n=== From {model} ===\n{response.message.content}")
         amounts_only_list.append(amounts_only)
     
+    # ============== 6. LLM 응답 결과로 최종 결과물 산출 (voting) ==============
     voting_time_start = time.time()
     try:
         asset_table = llm_vote_amounts(amounts_only_list)
@@ -191,7 +195,7 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
         logger.error(f"Error during LLM voting for PDF {pdf_path.name}: {e}")
         raise RuntimeError(f"LLM voting failed for {pdf_path.name}") from e
     
-    # Record delays and log results
+    # ============== 7. Record delays and log results ==============
     delay_dict["voting_delay"] = time.time() - voting_time_start
     delay_dict["e2e_delay"] = time.time() - e2e_start_time
     logger.info(f"LLM voting completed in {delay_dict['voting_delay']:.4f} seconds.")
@@ -207,6 +211,7 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     return asset_table
 
 
+# ============== 테스트 로직 ==============
 if __name__ == "__main__":
     import sys
     logging.basicConfig(
