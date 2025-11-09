@@ -100,7 +100,7 @@ class AssetTable(BaseModel):
 
     def to_list(self) -> list[(str,Asset)]:
         """Return a list of all Asset objects in the AssetTable."""
-        return [(key,value) for key, value in self.dict().items() if isinstance(value, Asset)]
+        return [(key,value) for key, value in self.model_dump().items() if isinstance(value, Asset)]
 
 
 # LLM 입력용 모델
