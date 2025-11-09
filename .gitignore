@@ -1,4 +1,4 @@
 # Environment variables file
 .env
 # pycache directories
-__pycache__/.
+__pycache__/
