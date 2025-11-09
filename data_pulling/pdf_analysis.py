@@ -105,10 +105,9 @@ def delay_dict_to_list(delay_dict: dict[str,float]) -> list[(str,float)]:
 # Analysis 결과 시각화 함수
 def plotit_asset_tables(stablecoin:str, asset_table: AssetTable):
     asset_list: list[(str,dict)] = asset_table.to_list()
-    logger.debug(f"asset list: {asset_list}")
     asset_names = []
     asset_values = []
-    for tup in asset_list:
+    for tup in asset_list[:-1]:
         asset_names.append(tup[0])
         asset_values.append(tup[1]["amount"])
     plt.figure(figsize=(10, 6))
