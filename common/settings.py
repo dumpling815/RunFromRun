@@ -190,13 +190,15 @@ SYSTEM_PROMPT = """
     - But same value from report should not be double-counted into multiple schema fields.
 
     2) **Use Instrument Codes (CUSIP, ISIN, Ticker)**
-    - If a line includes identifiers (e.g., CUSIP/ISIN), use your financial knowledge to classify the instrument and map it into the correct category.
+    - The preprocessor will most likely have converted the CUSIP code into an interpreter. If it hasn't, follow the instructions below.
+    - Use your financial knowledge to classify the instrument and map it into the correct category.
     - For example, CUSIP number '912797MS3' is 42-Day Treasury Bill and CUSIP number '912797RB5' is 119-Day Treasury Bill. You have to infer the asset type with given CUSIP number, and add into correct category (in this case, us_treasury_bills)
 
     3) **Parse Numbers & Units Robustly**
     - Strip currency symbols (e.g., `$`), commas, and footnote markers.
     - Parentheses indicate negatives; treat them as negative values only if it is clearly a subtraction. Most reserve tables list positive holdings.
     - All `amount` values must be in **US dollars** (NOT THOUSANDS/MILLIONS). If the table header indicates scale (e.g., "in millions"), MULTIPLY ACCORDINGLY.
+    - DIGIT ERRORS ARE ABSOLUTELY UNACCEPTABLE.
     - Be careful with numbers that contains ',' you should interpret them as thousands separator, not decimal point.
     - A comma should **never** be considered a decimal point.
 
