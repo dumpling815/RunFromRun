@@ -235,7 +235,7 @@ SYSTEM_PROMPT = """
     7) **Self Check Befor Emitting**
     - Before you print, run this mental checklist:
     - 1) Keys: exactly the schema keys, all present, no extras, double-quoted.
-    - 2) Values: integers only, no quotes, no commas, no decimals, >= 0.
+    - 2) Values: integers only, no quotes, no commas, no decimals, >= 0. Unit Must be US Dollar
     - 3) JSON is minified and begins with `{` and ends with `}` with **no extra characters**.
     - If any check fails, **fix it** and then print the corrected JSON.
 """

@@ -100,27 +100,27 @@ class AssetTable(BaseModel):
 
     def to_list(self) -> list[(str,Asset)]:
         """Return a list of all Asset objects in the AssetTable."""
-        return [(key,value) for key, value in self.model_dump().items() if isinstance(value, Asset)]
+        return [(key,value) for key, value in self.model_dump().items()]
 
 
 # LLM 입력용 모델
 class AmountsOnly(BaseModel):
-    cash_bank_deposits: Optional[float] = Field(None, ge=0)
-    us_treasury_bills: Optional[float] = Field(None, ge=0)
-    gov_mmf: Optional[float] = Field(None, ge=0)
-    other_deposits: Optional[float] = Field(None, ge=0)
+    cash_bank_deposits: Optional[float] = Field(None)
+    us_treasury_bills: Optional[float] = Field(None)
+    gov_mmf: Optional[float] = Field(None)
+    other_deposits: Optional[float] = Field(None)
     
-    repo_overnight_term: Optional[float] = Field(None, ge=0)
-    non_us_treasury_bills: Optional[float] = Field(None, ge=0)
-    us_treasury_other_notes_bonds: Optional[float] = Field(None, ge=0)
+    repo_overnight_term: Optional[float] = Field(None)
+    non_us_treasury_bills: Optional[float] = Field(None)
+    us_treasury_other_notes_bonds: Optional[float] = Field(None)
     
-    corporate_bonds: Optional[float] = Field(None, ge=0)
-    precious_metals: Optional[float] = Field(None, ge=0)
-    digital_assets: Optional[float] = Field(None, ge=0)
+    corporate_bonds: Optional[float] = Field(None)
+    precious_metals: Optional[float] = Field(None)
+    digital_assets: Optional[float] = Field(None)
     
-    secured_loans: Optional[float] = Field(None, ge=0)
-    other_investments: Optional[float] = Field(None, ge=0) 
-    custodial_concentrated_asset: Optional[float] = Field(None, ge=0)
+    secured_loans: Optional[float] = Field(None)
+    other_investments: Optional[float] = Field(None) 
+    custodial_concentrated_asset: Optional[float] = Field(None)
 
     # correction value는 LLM 응답 후 계산되므로 입력 모델에는 포함하지 않음.
 
