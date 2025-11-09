@@ -1,7 +1,7 @@
 # Pipeline for testing RfR server.
 import pandas as pd
 import camelot, fitz, re # fitz for PyMuPDF
-from common.settings import CAMELOT_MODE
+from common.settings import CAMELOT_MODE, API_KEYS
 from data_pulling.apis import replace_cusip_openfigi
 
 # PDF 분석 함수
@@ -100,38 +100,33 @@ def spillback_to_col0(df: pd.DataFrame) -> pd.DataFrame:
     df.loc[col0_empty, :] = df.loc[col0_empty, :].apply(pick_longest_text, axis=1)
     return df
 
-def drop_lowercase_start(df: pd.DataFrame) -> pd.DataFrame:
-    # 첫글자가 소문자라면, 표가 아님에도 불구하고 잘못된 인식으로 표에 포함되어 있는 경우로 볼 수 있음.
-    # 따라서, 0번째 열, 0번째 행의 첫글자가 소문자라면 해당 행을 제거.
+def post_process_first_row(df: pd.DataFrame) -> pd.DataFrame:
+    # 가장 흔한 오류 중 하나는, 표의 일부가 아닌 다른 문단 혹은 다른 표가 첫번째 행에 포함되는 경우.
+    # 이러한 경우를 보정하기 위한 후처리 함수.
+    # 1) 0번째 행, 0번째 열이 소문자로 시작하는 경우 해당 행 제거
+    # 2) 0번째 행에 docusign 포함시 제거
     if df.empty:
         return df.copy()
     
+    # 첫글자가 소문자라면, 표가 아님에도 불구하고 잘못된 인식으로 표에 포함되어 있는 경우로 볼 수 있음.
+    # 따라서, 0번째 열, 0번째 행의 첫글자가 소문자라면 해당 행을 제거.
     def starts_lower(s) -> bool:
         if not isinstance(s, str) or not s:
             return False
         ch = s.strip()[0]
         return 'a' <= ch <= 'z'
     
-    if starts_lower(df.iat[0,0]):
-        df = df.drop(index=df.index[0]).reset_index(drop=True)
-    return df
-
-def post_process_first_row(df: pd.DataFrame) -> pd.DataFrame:
-    # 가장 흔한 오류 중 하나는, 표의 일부가 아닌 다른 문단 혹은 다른 표가 첫번째 행에 포함되는 경우.
-    # 이러한 경우를 보정하기 위한 후처리 함수.
-    # 1) 0번째 행, 0번째 열이 소문자로 시작하는 경우 해당 행 제거
-    # 2) 0번째 행
-    # 우선은 docusign이 표에 포함되는 경우가 많아 docusign이 포함된 첫번째 행만 제거
-    if df.empty:
-        return df.copy()
-    
+    #  docusign이 표에 포함되는 경우가 많아 docusign이 포함된 첫번째 행만 제거
     def starts_docusign(s) -> bool:
         if not isinstance(s, str) or not s:
             return False
         return "Docusign" in s
     
+    if starts_lower(df.iat[0,0]):
+        df = df.drop(index=df.index[0]).reset_index(drop=True)
     if starts_docusign(df.iat[0,0]):
         df = df.drop(index=df.index[0]).reset_index(drop=True)
+    
     return df
 
 def eliminate_footnotes(df: pd.DataFrame) -> pd.DataFrame:
@@ -167,10 +162,11 @@ def post_process_tables(tables: camelot.core.TableList) -> list[pd.DataFrame]:
     for table in tables:
         df = table.df
         df = spillback_to_col0(df)
-        df = drop_lowercase_start(df)
         df = post_process_first_row(df)
         df = eliminate_footnotes(df)
-        df = df.map(replace_cusip_openfigi)
+        # CUSIP -> 자연어로 replace
+        if API_KEYS.OPENFIGI != "your_openfigi_api_key": # api key가 설정이 된 경우 진행
+            df = df.map(replace_cusip_openfigi)
         processed_tables.append(df)
         
     return processed_tables
@@ -189,11 +185,11 @@ def get_tables_from_pdf(pdf_path: str, stablecoin: str) -> list[pd.DataFrame]:
                     flavor = CAMELOT_MODE[stablecoin],
                     strip_text='\n',
                 )
-            elif CAMELOT_MODE[stablecoin] == "stream":  # stream 모드
+            elif CAMELOT_MODE[stablecoin] == "hybrid" or CAMELOT_MODE[stablecoin] == "stream":  # hybrid or stream 모드 -> stream 모든 지양.
                 tables = camelot.read_pdf(
                     pdf_path, 
                     pages='2-end', 
-                    flavor= "hybrid", #CAMELOT_MODE[stablecoin],
+                    flavor= CAMELOT_MODE[stablecoin],
                     strip_text='\n', # 셀 내부의 줄바꿈 문자가 계속 포함되는 문제가 있어 제거
                     split_text=False, # 셀 내부의 텍스트가 여러 셀로 분리되는 문제 방지, 기본값이지만 명시
                     row_tol=15, # 기본값은 2, 너무 낮은 경우에는 같은 행에 있는 Pdf의 텍스트가 df의 다른 행으로 분리되는 현상이 발생할 수 있음.

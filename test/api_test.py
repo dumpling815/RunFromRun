@@ -54,7 +54,7 @@ def find_cusips(text: str) -> list[str]:
     return out
 
 def openfigi_api_call(data: dict | None = None, method: str = "POST") -> str:
-    api_key = API_KEYS.OPENFIGI
+    api_key = "no_key"
     url = URLS.OPENFIGI_MAPPING_API_URL
 
     headers = {"Content-Type": "application/json"}
@@ -82,16 +82,9 @@ def openfigi_api_call(data: dict | None = None, method: str = "POST") -> str:
 def replace_cusip_openfigi(target_str: str) -> str:
     # OPENFIGI를 이용하여 CUSIP으로 표기된 자산을 자연어 설명으로 변경
     # See https://www.openfigi.com/api for more information.
-    api_key = API_KEYS.OPENFIGI
-
-    headers = {"Content-Type": "application/json"}
-    if api_key:
-        headers |= {"X-OPENFIGI-APIKEY": api_key}
-    
 
     candidates = find_cusips(target_str)
 
-    #candidates = ['912797NA1'] #[DEBUG]
     for cusip_code in candidates:
         mapping_request = [
             {"idType": "ID_CUSIP", "idValue": f"{cusip_code}"},
