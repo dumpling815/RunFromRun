@@ -187,7 +187,8 @@ SYSTEM_PROMPT = """
     - But same value from report should not be double-counted into multiple schema fields.
 
     2) **Use Instrument Codes (CUSIP, ISIN, Ticker)**
-    - If a line includes identifiers (e.g., CUSIP/ISIN), use your financial knowledge to classify the instrument and map it into the correct schema category above.
+    - If a line includes identifiers (e.g., CUSIP/ISIN), use your financial knowledge to classify the instrument and map it into the correct category.
+    - For example, CUSIP number '912797MS3' is 42-Day Treasury Bill and CUSIP number '912797RB5' is 119-Day Treasury Bill. You have to infer the asset type with given CUSIP number, and add into correct category (in this case, us_treasury_bills)
 
     3) **Parse Numbers & Units Robustly**
     - Strip currency symbols (e.g., `$`), commas, and footnote markers.
@@ -197,18 +198,12 @@ SYSTEM_PROMPT = """
     - Be careful with numbers that contains ',' you should interpret them as thousands separator, not decimal point.
 
     4) **Fill Missing Items Carefully**
-    - If a schema field cannot be located, set:
-        ```
-        tier = -1
-        qls_score = 0.0
-        amount = 0.0
-        ratio = null
-        ```
+    - If an element that needs to be filled in is not visible, set its value to 0.
     - Do **not** invent numbers.
 
     5) **Validate Before Emitting JSON**
     - Ensure every schema key exists and is an object with the required fields.
-    - Ensure numeric fields are numbers (not strings).
+    - Ensure numeric fields are numbers (not strings neither sub-json).
     - Compute `total_amount` as the **sum** of all `amount` fields you filled (even when some are 0.0).
     - Ensure all amounts ≥ 0 and ratios ∈ [0, 100] when present.
     - If a ratio is present but amount is missing, infer amount when the report provides `total` and ratios (amount = total × ratio/100). Only do this when the relation is explicitly implied by the table.
