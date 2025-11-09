@@ -129,7 +129,18 @@ def post_process_first_row(df: pd.DataFrame) -> pd.DataFrame:
     # 이러한 경우를 보정하기 위한 후처리 함수.
     # 1) 0번째 행, 0번째 열이 소문자로 시작하는 경우 해당 행 제거
     # 2) 0번째 행
-    pass
+    # 우선은 docusign이 표에 포함되는 경우가 많아 docusign이 포함된 첫번째 행만 제거
+    if df.empty:
+        return df.copy()
+    
+    def starts_docusign(s) -> bool:
+        if not isinstance(s, str) or not s:
+            return False
+        return "Docusign" in s
+    
+    if starts_docusign(df.iat[0,0]):
+        df = df.drop(index=df.index[0]).reset_index(drop=True)
+    return df
 
 def eliminate_footnotes(df: pd.DataFrame) -> pd.DataFrame:
     # 표 내에 각주(footnote) 등이 포함되는 경우가 있음.
@@ -157,11 +168,7 @@ def eliminate_footnotes(df: pd.DataFrame) -> pd.DataFrame:
                 return s
         return s
     df[0] = df[0].apply(remove_footnote_from_cell)
-    return df
-    
-
-    
-    
+    return df  
 
 def post_process_tables(tables: camelot.core.TableList) -> list[pd.DataFrame]:
     processed_tables = []
@@ -169,6 +176,7 @@ def post_process_tables(tables: camelot.core.TableList) -> list[pd.DataFrame]:
         df = table.df
         df = spillback_to_col0(df)
         df = drop_lowercase_start(df)
+        df = post_process_first_row(df)
         df = eliminate_footnotes(df)
         processed_tables.append(df)
         
@@ -185,23 +193,22 @@ pdf_path = USDC_PDF_PATH
 pdf_format = get_pdf_style(pdf_path)
 
 if pdf_format == "text":
-    tables = camelot.read_pdf(
+    tables = camelot.read_pdf( # USDC Setting
         pdf_path, 
         pages='2-end', 
-        flavor='stream',
+        flavor='hybrid',
         strip_text='\n', # 셀 내부의 줄바꿈 문자가 계속 포함되는 문제가 있어 제거
         split_text=False, # 셀 내부의 텍스트가 여러 셀로 분리되는 문제 방지, 기본값이지만 명시
-        row_tol=9, # 기본값은 2, 너무 낮은 경우에는 같은 행에 있는 Pdf의 텍스트가 df의 다른 행으로 분리되는 현상이 발생할 수 있음.
-        column_tol=1,
+        row_tol=15, # 기본값은 2, 너무 낮은 경우에는 같은 행에 있는 Pdf의 텍스트가 df의 다른 행으로 분리되는 현상이 발생할 수 있음.
+        column_tol=3,
         layout_kwargs={
-            "word_margin": 0.5,   # 단어 간 거리 허용 ↑
-            "line_margin": 0.8,   # 줄 병합 여유 ↑
-            "boxes_flow": -1      # 수평 정렬(표형 데이터)에 가중치
+            "word_margin": 1.0,   # 단어 간 거리 허용 ↑
+            "line_margin": 1.5,   # 줄 병합 여유 ↑
+            "boxes_flow": -1,      # 수평 정렬(표형 데이터)에 가중치
         }
-        # process_background=True, # 배경에 음영 혹은 색상이 있는 경우 테이블 인식률 향상
-        # line_scale=60
+
         )
-    # tables = camelot.read_pdf(
+    # tables = camelot.read_pdf( USDT setting
     #     pdf_path,
     #     pages = '2-end',
     #     flavor = 'lattice',
