@@ -3,7 +3,6 @@ import urllib.request
 import urllib.parse
 
 from common.settings import API_KEYS, URLS
-from data_pulling.dataframe_process import get_tables_from_pdf
 
 # CUSIP은 9자, I, O를 제외한 알파벳과 숫자 조합으로 공백이 없고, 마지막 한 글자는 체크 디지트로 숫자가 오게됨.
 # CUSIP_RE = re.compile(r'\b[A-HJ-NP-Z0-9]{8}[0-9]\b')
