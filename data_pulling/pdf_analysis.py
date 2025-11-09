@@ -157,9 +157,9 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
         #json_tables_str: str = jsonize_tables(tables)
         markdown_tables_str: str = markdownize_tables(tables)
     except Exception as e:
-        logger.error(f"Error converting tables to JSON for PDF {pdf_path.name}: {e}")
-        raise RuntimeError(f"Table JSON conversion failed for {pdf_path.name}") from e
-    logger.debug(f"Converted tables to JSON format for LLM input.")
+        logger.error(f"Error converting tables to Markdown(or JSON) for PDF {pdf_path.name}: {e}")
+        raise RuntimeError(f"Dataframe to Markdown(or JSON) conversion failed for {pdf_path.name}") from e
+    logger.debug(f"Converted tables to Markdown(or JSON) format for LLM input.")
 
 
     # ============== 3. User Prompt에 string으로 변환된 표 주입 ==============

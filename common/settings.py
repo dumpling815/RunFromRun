@@ -195,6 +195,7 @@ SYSTEM_PROMPT = """
     - Parentheses indicate negatives; treat them as negative values only if it is clearly a subtraction. Most reserve tables list positive holdings.
     - All `amount` values must be in **US dollars** (not thousands/millions). If the table header indicates scale (e.g., "in millions"), multiply accordingly.
     - Be careful with numbers that contains ',' you should interpret them as thousands separator, not decimal point.
+    - If a number containing a decimal point is found and is not a ratio, discard the digits after the decimal point.
 
     4) **Fill Missing Items Carefully**
     - If an element that needs to be filled in is not visible, set its value to 0.
@@ -203,7 +204,7 @@ SYSTEM_PROMPT = """
     5) **Validate Before Emitting JSON**
     - Ensure every schema key exists and is an object with the required fields.
     - Ensure numeric fields are numbers (not strings neither sub-json).
-    - Compute `total_amount` as the **sum** of all `amount` fields you filled (even when some are 0.0).
+    - Compute `total_amount` as the **sum** of all `amount` fields you filled (even when some are 0).
     - Ensure all amounts ≥ 0 and ratios ∈ [0, 100] when present.
     - If a ratio is present but amount is missing, infer amount when the report provides `total` and ratios (amount = total × ratio/100). Only do this when the relation is explicitly implied by the table.
 
@@ -212,23 +213,24 @@ SYSTEM_PROMPT = """
     - Note that following JSON schema is created by json.dumps(<pydantic BaseModel>.model_json_schema()).
     - Here is following the JSON schema you must follow:\n\n __json_schema__.
     - NO EXPLANATIONS, NO COMMENTS, NO PROSE OUTSIDE OF JSON.
-    - Example Output: (YOUR ONLY DUE IS TO FILL FLOAT VALUE **<your_value>** WITH THE CORRECT NUMBER YOU EXTRACTED)
+    - DO NOT FIX THE STRUCTURE OF FORMAT. PUTTING SUB-JSON FORMAT IN YOUR PLACE IS NOT ALLOWED
+    - Example Output: (YOUR ONLY DUE IS TO FILL INTEGER VALUE **<your_value>** WITH THE CORRECT NUMBER YOU EXTRACTED)
     - ** YOU MUST WRITE VERY VERY STRICTLY FOLLOWING THE EXAMPLE FORMAT GIVEN BELOW **
     {
-        "cash_bank_deposits": <your_FLOAT_value>,
-        "us_treasury_bills": <your_FLOAT_value>,
-        "gov_mmf": <your_FLOAT_value>,
-        "other_deposits": <your_FLOAT_value>,
-        "repo_overnight_term": <your_FLOAT_value>,
-        "non_us_treasury_bills": <your_FLOAT_value>,
-        "us_treasury_other_notes_bonds": <your_FLOAT_value>,
-        "corporate_bonds": <your_FLOAT_value>,
-        "precious_metals": <your_FLOAT_value>,
-        "digital_assets": <your_FLOAT_value>,
-        "secured_loans": <your_FLOAT_value>,
-        "other_investments": <your_FLOAT_value>,
-        "custodial_concentrated_asset": <your_FLOAT_value>,
-        "total_amount": <your_FLOAT_value>
+        "cash_bank_deposits": <your_INTEGER_value>,
+        "us_treasury_bills": <your_INTEGER_value>,
+        "gov_mmf": <your_INTEGER_value>,
+        "other_deposits": <your_INTEGER_value>,
+        "repo_overnight_term": <your_INTEGER_value>,
+        "non_us_treasury_bills": <your_INTEGER_value>,
+        "us_treasury_other_notes_bonds": <your_INTEGER_value>,
+        "corporate_bonds": <your_INTEGER_value>,
+        "precious_metals": <your_INTEGER_value>,
+        "digital_assets": <your_INTEGER_value>,
+        "secured_loans": <your_INTEGER_value>,
+        "other_investments": <your_INTEGER_value>,
+        "custodial_concentrated_asset": <your_INTEGER_value>,
+        "total_amount": <your_INTEGER_value>
     }
 """
 USER_PROMPT_TEMPLATE = f"""
