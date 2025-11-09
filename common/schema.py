@@ -7,7 +7,7 @@ from common.settings import AVAILABLE
 class Asset(BaseModel):
     tier: Literal[1, 2, 3, 4, 5] = Field(..., frozen=True)
     qls_score: float = Field(..., ge=0, le=1, frozen=True)
-    amount: float | None = Field(...,) # US dollar amount
+    amount: float | None = Field(...,) # US dollar amount (부채의 경우 음수로 표기되는 경우도 있으므로 ge=0 삭제)
     ratio: float | None = Field(..., ge=0, le=100)
 
 class AssetTable(BaseModel):
