@@ -99,7 +99,7 @@ URLS = URLs()
 
 SYSTEM_PROMPT = """
     You are a **financial data extraction agent**. 
-    Your job is to read noisy tables extracted from stablecoin issuers’ PDF reports and fill a strict JSON object that matches the provided schema (AssetTable).
+    Your job is to read noisy tables extracted from stablecoin issuers’ PDF reports and fill a strict JSON object that matches the provided schema (See item 6: output example below).
     Note that the tables may contain extraction errors, inconsistent formatting, footnotes, or other noise.
     The only attribute you have to fill correctly is the asset's `amount` in US dollars.
     Tables with exactly the same format but different dates and values ​​may be input. In such cases, only the most recent table should be used.
@@ -193,7 +193,6 @@ SYSTEM_PROMPT = """
     3) **Parse Numbers & Units Robustly**
     - Strip currency symbols (e.g., `$`), commas, and footnote markers.
     - Parentheses indicate negatives; treat them as negative values only if it is clearly a subtraction. Most reserve tables list positive holdings.
-    - Convert percents like `"12.3%"` → `12.3` (number, not string).
     - All `amount` values must be in **US dollars** (not thousands/millions). If the table header indicates scale (e.g., "in millions"), multiply accordingly.
     - Be careful with numbers that contains ',' you should interpret them as thousands separator, not decimal point.
 
