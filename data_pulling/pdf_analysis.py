@@ -11,7 +11,7 @@ from ollama import chat, ChatResponse, Options
 
 
 logger = logging.getLogger("pdf_analysis")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 # tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B")
 # text = SYSTEM_PROMPT.replace("__json_schema__", json.dumps(AmountsOnly.model_json_schema()))
