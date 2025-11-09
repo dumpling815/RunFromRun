@@ -182,7 +182,7 @@ def post_process_tables(tables: camelot.core.TableList) -> list[pd.DataFrame]:
         
     return processed_tables
 
-pdf_path = USDT_PDF_PATH
+pdf_path = USDC_PDF_PATH
 
 # paths = [USDC_PDF_PATH, USDT_PDF_PATH, FDUSD_PDF_PATH, PYUSD_PDF_PATH, TUSD_PDF_PATH, USDP_PDF_PATH]
 # for i in paths:
@@ -193,26 +193,26 @@ pdf_path = USDT_PDF_PATH
 pdf_format = get_pdf_style(pdf_path)
 
 if pdf_format == "text":
-    # tables = camelot.read_pdf( # USDC Setting
-    #     pdf_path, 
-    #     pages='2-end', 
-    #     flavor='hybrid',
-    #     strip_text='\n', # 셀 내부의 줄바꿈 문자가 계속 포함되는 문제가 있어 제거
-    #     split_text=False, # 셀 내부의 텍스트가 여러 셀로 분리되는 문제 방지, 기본값이지만 명시
-    #     row_tol=15, # 기본값은 2, 너무 낮은 경우에는 같은 행에 있는 Pdf의 텍스트가 df의 다른 행으로 분리되는 현상이 발생할 수 있음.
-    #     column_tol=3,
-    #     layout_kwargs={
-    #         "word_margin": 1.0,   # 단어 간 거리 허용 ↑
-    #         "line_margin": 1.5,   # 줄 병합 여유 ↑
-    #         "boxes_flow": -1,      # 수평 정렬(표형 데이터)에 가중치
-    #     }
-    #     )
-    tables = camelot.read_pdf( #USDT setting
-        pdf_path,
-        pages = '2-end',
-        flavor = 'lattice',
-        strip_text='\n',
-    )
+    tables = camelot.read_pdf( # USDC Setting
+        pdf_path, 
+        pages='2-end', 
+        flavor='hybrid',
+        strip_text='\n', # 셀 내부의 줄바꿈 문자가 계속 포함되는 문제가 있어 제거
+        split_text=False, # 셀 내부의 텍스트가 여러 셀로 분리되는 문제 방지, 기본값이지만 명시
+        row_tol=15, # 기본값은 2, 너무 낮은 경우에는 같은 행에 있는 Pdf의 텍스트가 df의 다른 행으로 분리되는 현상이 발생할 수 있음.
+        column_tol=3,
+        layout_kwargs={
+            "word_margin": 1.0,   # 단어 간 거리 허용 ↑
+            "line_margin": 1.5,   # 줄 병합 여유 ↑
+            #"boxes_flow": -1,      # 수평 정렬(표형 데이터)에 가중치
+        }
+        )
+    # tables = camelot.read_pdf( #USDT setting
+    #     pdf_path,
+    #     pages = '2-end',
+    #     flavor = 'lattice',
+    #     strip_text='\n',
+    # )
     tables = filter_valid_tables(tables)
     tables = post_process_tables(tables)
     for i, table in enumerate(tables):

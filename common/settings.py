@@ -77,8 +77,10 @@ class APIKeys(BaseSettings):
     OPENAI: str | None
     KOSCOM: str | None
     COINGECKO: str | None
+    OPENFIGI: str | None
 
 class URLs(BaseSettings):
+    model_config = SettingsConfigDict(env_file= "../.env", env_file_encoding= "utf-8", extra="ignore") #for development purpose
     USDC_CIRCLE_REPORT_URL: str | None
     USDT_TETHER_REPORT_URL: str | None
     FDUSD_FIRSTDIGITALLABS_REPORT_URL: str | None
@@ -87,6 +89,7 @@ class URLs(BaseSettings):
     USDP_PAXOS_REPORT_URL: str | None
     COINGECKO_PRO_API_URL: str | None
     COINGECKO_DEMO_API_URL: str | None
+    OPENFIGI_MAPPING_API_URL: str | None
 
 
 CAMELOT_MODE:dict = parse_from_string_env(value=os.environ.get("CAMELOT_MODE"), is_num=False)
@@ -120,7 +123,7 @@ SYSTEM_PROMPT = """
 
         #### (2) us_treasury_bills
         **Definition:** Direct holdings of U.S. Treasury Bills (discount securities, ≤1 year maturity) valued at fair value or amortized cost.  
-        **Examples:** “U.S. Treasury Bills”, “UST Bills”, “Treasury securities (short-term)”.  
+        **Examples:** “U.S. Treasury Bills”, “UST Bills”, “US Treasury securities (short-term)”.  
         **Source Terms:** USDC — “TOTAL U.S. TREASURY SECURITIES”; PYUSD — “Obligations of U.S. Treasury, at fair value”; USDP — same; FDUSD — “Total U.S. Treasury Bills”; TUSD — “US Treasury Bills”; Tether — “U.S. Treasury Bills”.
 
         #### (3) gov_mmf
@@ -195,7 +198,8 @@ SYSTEM_PROMPT = """
     - Parentheses indicate negatives; treat them as negative values only if it is clearly a subtraction. Most reserve tables list positive holdings.
     - All `amount` values must be in **US dollars** (NOT THOUSANDS/MILLIONS). If the table header indicates scale (e.g., "in millions"), MULTIPLY ACCORDINGLY.
     - Be careful with numbers that contains ',' you should interpret them as thousands separator, not decimal point.
-    - If a number containing a decimal point is found and is not a ratio, discard the digits after the decimal point.
+    - If a number containing a decimal point is found and is not a ratio, discard the digits after the decimal point
+    - A comma should **never** be considered a decimal point.
 
     4) **Fill Missing Items Carefully**
     - If an element that needs to be filled in is not visible, set its value to 0.
