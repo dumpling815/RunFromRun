@@ -1,6 +1,8 @@
 from common.settings import OLLAMASETTINGS, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
 from common.schema import AssetTable, AmountsOnly
 from typing import Optional
+# from transformers import AutoTokenizer
+import matplotlib.pyplot as plt
 import pandas as pd
 from data_pulling.dataframe_process import get_tables_from_pdf
 from  pathlib import Path
@@ -8,8 +10,14 @@ import json, logging, time
 from ollama import chat, ChatResponse, Options
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("pdf_analysis")
 logger.setLevel(logging.INFO)
+
+# tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B")
+# text = SYSTEM_PROMPT.replace("__json_schema__", json.dumps(AmountsOnly.model_json_schema()))
+# tokens = tokenizer.encode(text)
+# print(len(tokens)+ 100)
+
 
 
 def markdownize_tables(tables: list[AssetTable]) -> str:
@@ -84,7 +92,6 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
 
     # total_amount가 표에서 추출 자체가 안되는 edge case 존재할 수 있기 때문에, total_amount는 asset_sum과 비교하여 더 큰 값을 선택
     voted_assets["total_amount"] = max(voted_assets["total_amount"], asset_sum)
-    voted_assets["correction_value"] = max(voted_assets["total_amount"],asset_sum) - asset_sum
     result:AssetTable =  AmountsOnly.model_validate(voted_assets).to_asset_table()
 
     return result
@@ -94,6 +101,23 @@ def delay_dict_to_list(delay_dict: dict[str,float]) -> list[(str,float)]:
     for key, value in delay_dict.items():
         result.append((key, value))
     return result
+
+# Analysis 결과 시각화 함수
+def plotit(stablecoin: str,delay_tup_list: list[(str,float)], model_nums: int):
+    delay_name=[]
+    delay_time=[]
+    COLOR = ['blue'] + ['green'] * model_nums + ['orange','red']
+    for tup in delay_tup_list:
+        delay_name.append(tup[0])
+        delay_time.append(tup[1])
+    plt.figure(figsize=(10, 6))
+    plt.bar(delay_name, delay_time, color=COLOR)
+    plt.title(f'Delay proportion : {stablecoin} PDF analysis in RTX 5070')
+    plt.xlabel('Job')
+    plt.ylabel('Seconds')
+    plt.xticks(rotation=30, ha='right')
+    plt.tight_layout()   # 라벨 잘림 방지
+    plt.savefig(f'{stablecoin}_pdf_analysis_delay.png')
 
 # Main PDF 분석 함수
 def analyze_pdf_api_call(pdf_path: Path, stablecoin: str) -> AssetTable:
@@ -118,6 +142,8 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
         logger.error(f"Error converting tables to JSON for PDF {pdf_path.name}: {e}")
         raise RuntimeError(f"Table JSON conversion failed for {pdf_path.name}") from e
     logger.debug(f"Converted tables to JSON format for LLM input.")
+
+
 
     #user_prompt = complete_user_prompt(json_tables_str, USER_PROMPT_TEMPLATE)
     user_prompt = complete_user_prompt(markdown_tables_str, USER_PROMPT_TEMPLATE)
@@ -164,6 +190,8 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     except Exception as e:
         logger.error(f"Error during LLM voting for PDF {pdf_path.name}: {e}")
         raise RuntimeError(f"LLM voting failed for {pdf_path.name}") from e
+    
+    # Record delays and log results
     delay_dict["voting_delay"] = time.time() - voting_time_start
     delay_dict["e2e_delay"] = time.time() - e2e_start_time
     logger.info(f"LLM voting completed in {delay_dict['voting_delay']:.4f} seconds.")
@@ -172,8 +200,11 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     logger.info(f"\n{asset_table}")
     delay_list = delay_dict_to_list(delay_dict)
     logger.info(f"Delay breakdown: {delay_list}")
-    return asset_table
 
+    # Comment it out if plotting is not desired
+    plotit(stablecoin, delay_list, len(OLLAMASETTINGS.MODELS))
+
+    return asset_table
 
 
 if __name__ == "__main__":
@@ -185,3 +216,6 @@ if __name__ == "__main__":
     )
     pdf_path = Path("./test/report/USDT.pdf") # [DEBUG] 테스트용 PDF 경로
     result_table = analyze_pdf_local_llm(pdf_path, stablecoin="USDT")
+    
+    pdf_path = Path("./test/report/USDC.pdf") # [DEBUG] 테스트용 PDF 경로
+    result_table = analyze_pdf_local_llm(pdf_path, stablecoin="USDC")
