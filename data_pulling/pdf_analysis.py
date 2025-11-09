@@ -1,5 +1,5 @@
 from common.settings import OLLAMASETTINGS, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
-from common.schema import AssetTable, AmountsOnly
+from common.schema import AssetTable, AmountsOnly, Asset
 from typing import Optional
 # from transformers import AutoTokenizer
 import matplotlib.pyplot as plt
@@ -103,7 +103,24 @@ def delay_dict_to_list(delay_dict: dict[str,float]) -> list[(str,float)]:
     return result
 
 # Analysis 결과 시각화 함수
-def plotit(stablecoin: str,delay_tup_list: list[(str,float)], model_nums: int):
+def plotit_asset_tables(stablecoin:str, asset_table: AssetTable):
+    asset_list: list[(str,Asset)] = asset_table.to_list()
+    asset_names = []
+    asset_values = []
+    for tup in asset_list:
+        asset_names.append(tup[0])
+        asset_values.append(tup[1].amount)
+    plt.figure(figsize=(10, 6))
+    plt.bar(asset_names, asset_values)
+    plt.title(f'Asset proportion : {stablecoin}')
+    plt.xlabel('Asset')
+    plt.ylabel('US Dollar')
+    plt.xticks(rotation=30, ha='right')
+    plt.tight_layout()   # 라벨 잘림 방지
+    plt.savefig(f'{stablecoin}_pdf_analysis_assets.png')
+        
+
+def plotit_delay(stablecoin: str,delay_tup_list: list[(str,float)], model_nums: int):
     delay_name=[]
     delay_time=[]
     COLOR = ['blue'] + ['green'] * model_nums + ['orange','red']
@@ -206,7 +223,7 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     logger.info(f"Delay breakdown: {delay_list}")
 
     # Comment it out if plotting is not desired
-    plotit(stablecoin, delay_list, len(OLLAMASETTINGS.MODELS))
+    plotit_delay(stablecoin, delay_list, len(OLLAMASETTINGS.MODELS))
 
     return asset_table
 
@@ -221,6 +238,8 @@ if __name__ == "__main__":
     )
     pdf_path = Path("./test/report/USDT.pdf") # [DEBUG] 테스트용 PDF 경로 => USDT 정상 작동 확인
     result_table = analyze_pdf_local_llm(pdf_path, stablecoin="USDT")
+    plotit_asset_tables(stablecoin="USDT", asset_table=result_table)
     
     pdf_path = Path("./test/report/USDC.pdf") # [DEBUG] 테스트용 PDF 경로
     result_table = analyze_pdf_local_llm(pdf_path, stablecoin="USDC")
+    plotit_asset_tables(stablecoin="USDC", asset_table=result_table)

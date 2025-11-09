@@ -214,27 +214,27 @@ SYSTEM_PROMPT = """
     - If a ratio is present but amount is missing, infer amount when the report provides `total` and ratios (amount = total × ratio/100). Only do this when the relation is explicitly implied by the table.
 
     6) **Output Format**
-    - Output: **only** one JSON object that matches the given schema exactly.
+    - Output: **ONLY** one JSON object that matches the given schema exactly.
     - Note that following JSON schema is created by json.dumps(<pydantic BaseModel>.model_json_schema()).
     - Here is following the JSON schema you must follow:\n\n __json_schema__.
-    - No explanations, no comments, no prose outside of JSON.
-    - Example Output: (you must fill <your_value> with the correct number (float type) you extracted)
+    - NO EXPLANATIONS, NO COMMENTS, NO PROSE OUTSIDE OF JSON.
+    - Example Output: (YOUR ONLY DUE IS TO FILL FLOAT VALUE **<your_value>** WITH THE CORRECT NUMBER YOU EXTRACTED)
     - ** YOU MUST WRITE VERY VERY STRICTLY FOLLOWING THE EXAMPLE FORMAT GIVEN BELOW **
     {
-        "cash_bank_deposits": <your_value>,
-        "us_treasury_bills": <your_value>,
-        "gov_mmf": <your_value>,
-        "other_deposits": <your_value>,
-        "repo_overnight_term": <your_value>,
-        "non_us_treasury_bills": <your_value>,
-        "us_treasury_other_notes_bonds": <your_value>,
-        "corporate_bonds": <your_value>,
-        "precious_metals": <your_value>,
-        "digital_assets": <your_value>,
-        "secured_loans": <your_value>,
-        "other_investments": <your_value>,
-        "custodial_concentrated_asset": <your_value>,
-        "total_amount": <your_value>
+        "cash_bank_deposits": <your_FLOAT_value>,
+        "us_treasury_bills": <your_FLOAT_value>,
+        "gov_mmf": <your_FLOAT_value>,
+        "other_deposits": <your_FLOAT_value>,
+        "repo_overnight_term": <your_FLOAT_value>,
+        "non_us_treasury_bills": <your_FLOAT_value>,
+        "us_treasury_other_notes_bonds": <your_FLOAT_value>,
+        "corporate_bonds": <your_FLOAT_value>,
+        "precious_metals": <your_FLOAT_value>,
+        "digital_assets": <your_FLOAT_value>,
+        "secured_loans": <your_FLOAT_value>,
+        "other_investments": <your_FLOAT_value>,
+        "custodial_concentrated_asset": <your_FLOAT_value>,
+        "total_amount": <your_FLOAT_value>
     }
 """
 USER_PROMPT_TEMPLATE = f"""

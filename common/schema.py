@@ -98,9 +98,9 @@ class AssetTable(BaseModel):
         lines = [fmt_row(header), sep] + [fmt_row(r) for r in rows] + [sep, fmt_row(total_line)]
         return "\n".join(lines)
 
-    def to_list(self) -> list[Asset]:
+    def to_list(self) -> list[(str,Asset)]:
         """Return a list of all Asset objects in the AssetTable."""
-        return [value for key, value in self.dict().items() if isinstance(value, Asset)]
+        return [(key,value) for key, value in self.dict().items() if isinstance(value, Asset)]
 
 
 # LLM 입력용 모델
