@@ -219,8 +219,8 @@ if __name__ == "__main__":
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         stream=sys.stdout,
     )
-    pdf_path = Path("./test/report/USDT.pdf") # [DEBUG] 테스트용 PDF 경로
-    result_table = analyze_pdf_local_llm(pdf_path, stablecoin="USDT")
+    # pdf_path = Path("./test/report/USDT.pdf") # [DEBUG] 테스트용 PDF 경로 => USDT 정상 작동 확인
+    # result_table = analyze_pdf_local_llm(pdf_path, stablecoin="USDT")
     
     pdf_path = Path("./test/report/USDC.pdf") # [DEBUG] 테스트용 PDF 경로
     result_table = analyze_pdf_local_llm(pdf_path, stablecoin="USDC")
