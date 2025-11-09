@@ -237,7 +237,7 @@ SYSTEM_PROMPT = """
     - 1) Keys: exactly the schema keys, all present, no extras, double-quoted.
     - 2) Values: integers only, no quotes, no commas, no decimals, >= 0. Unit Must be US Dollar
     - 3) JSON is minified and begins with `{` and ends with `}` with **no extra characters**.
-    - If any check fails, **fix, but does not touch values, just schema** and then print the corrected JSON.
+    - If any check fails, **fix, but does not touch values or units, just schema** and then print the corrected JSON.
 """
 USER_PROMPT_TEMPLATE = """
     You will get _tablenum_ dataframes the follwing dataframe extracted from a financial report PDF, extract the asset information and fill the given JSON format as specified below.

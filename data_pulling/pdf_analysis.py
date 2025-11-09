@@ -107,9 +107,11 @@ def plotit_asset_tables(stablecoin:str, asset_table: AssetTable):
     asset_list: list[(str,dict)] = asset_table.to_list()
     asset_names = []
     asset_values = []
-    for tup in asset_list[:-1]:
+    for tup in asset_list[:14]:
         asset_names.append(tup[0])
         asset_values.append(tup[1]["amount"])
+    asset_names.append(f"{stablecoin} Total Amount")
+    asset_values.append(asset_table.total_amount)
     plt.figure(figsize=(10, 6))
     plt.bar(asset_names, asset_values)
     plt.title(f'Asset proportion : {stablecoin}')
