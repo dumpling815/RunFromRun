@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 # [DEBUG] Development 환경에서는 .env 파일을 로드하도록 설정.
 load_dotenv(dotenv_path="./.env")
 
-
 # 환경변수들은 Docker image에 주입됨.
 # 즉, .env 파일이 직접 image에 copy되지 않고, 이미지 빌드 시점에 환경변수로 주입됨.
 # BaseSettings는 주입된 환경변수를 자동으로 로드함.
@@ -29,8 +28,6 @@ def parse_from_string_env(value: str, is_num: bool) -> list | dict:
                 val = float(val)
             result[key] = val
     return result
-
-        
 
 class Available(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="AVAILABLE_", env_file= "../.env", env_file_encoding= "utf-8", extra="ignore") #[DEBUG] for development purpose
@@ -73,14 +70,14 @@ class OllamaSettings(BaseSettings):
         return self
 
 class APIKeys(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="API_KEY_", env_file= "../.env", env_file_encoding= "utf-8", extra="ignore") #for development purpose
+    model_config = SettingsConfigDict(env_prefix="API_KEY_", env_file= "../.env", env_file_encoding= "utf-8", extra="ignore") #[DEBUG] for development purpose
     OPENAI: str | None
     KOSCOM: str | None
     COINGECKO: str | None
     OPENFIGI: str | None
 
 class URLs(BaseSettings):
-    model_config = SettingsConfigDict(env_file= "../.env", env_file_encoding= "utf-8", extra="ignore") #for development purpose
+    model_config = SettingsConfigDict(env_file= "../.env", env_file_encoding= "utf-8", extra="ignore") #[DEBUG] for development purpose
     USDC_CIRCLE_REPORT_URL: str | None
     USDT_TETHER_REPORT_URL: str | None
     FDUSD_FIRSTDIGITALLABS_REPORT_URL: str | None
@@ -103,8 +100,7 @@ URLS = URLs()
 SYSTEM_PROMPT = """
     You are a **financial data extraction agent**. 
     Your job is to read noisy tables extracted from stablecoin issuers’ PDF reports and fill a strict JSON object that matches the provided schema (See item 6: output example below).
-    Note that the tables may contain extraction errors, inconsistent formatting, footnotes, or other noise.
-    The only attribute you have to fill correctly is the asset's `amount` in US DOLLARS, not million or thousand dollar unit.
+    The only attribute you have to fill correctly is the asset's `amount` in US DOLLARS
     Tables with exactly the same format but different dates and values ​​may be input. In such cases, only the most recent table should be used.
     Certain tables or rows often refer to the issuance of stablecoins, not assets. Since "issuance" is not an "asset," this figure should be appropriately disregarded.
     For example, if a company manages a portion of its assets in Bitcoin, it is included as an asset. However, if the company's issuance is expressed in the table using terms like "outstanding" or "token," it is not recognized as an asset.
@@ -219,7 +215,7 @@ SYSTEM_PROMPT = """
     - Output: **ONLY** one JSON object that matches the given schema exactly.
     - Note that following JSON schema is created by json.dumps(<pydantic BaseModel>.model_json_schema()).
     - Here is following the JSON schema you must follow:\n\n __json_schema__.
-    - Example Output: (YOUR ONLY DUE IS TO FILL INTEGER VALUE **<your_value>** WITH THE CORRECT NUMBER YOU EXTRACTED)
+    - Example Output: (YOUR ONLY DUE IS TO FILL **<your_value>** WITH THE CORRECT NUMBER YOU EXTRACTED)
     {
         "cash_bank_deposits": <your_INTEGER_value>,
         "us_treasury_bills": <your_INTEGER_value>,
@@ -243,7 +239,7 @@ SYSTEM_PROMPT = """
     7) **Self Check Befor Emitting**
     - Before you print, run this mental checklist:
     - 1) Keys: exactly the schema keys, all present, no extras, double-quoted.
-    - 2) Values: integers only, no quotes, no commas. Unit Must be US Dollar
+    - 2) Values: integers only, no quotes, no commas. Unit Must be US Dollar. (If value is so small, e.g: 20, 60... you might misunderstand the value)
     - 3) JSON is minified and begins with `{` and ends with `}` with **no extra characters**.
     - If any check fails, **fix**.
 """
