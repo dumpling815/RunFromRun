@@ -243,8 +243,27 @@ SYSTEM_PROMPT = """
     - If any check fails, **fix**.
 """
 USER_PROMPT_TEMPLATE = """
-    You will get _tablenum_ dataframes extracted from a financial report PDF, extract the asset information and fill the given JSON format as specified in system prompt.
-    
+    You will get _tablenum_ dataframes extracted from a financial report PDF, extract the asset information and fill <your_INTEGER_value> of the following JSON format:
+
+
+    {
+        "cash_bank_deposits": <your_INTEGER_value>,
+        "us_treasury_bills": <your_INTEGER_value>,
+        "gov_mmf": <your_INTEGER_value>,
+        "other_deposits": <your_INTEGER_value>,
+        "repo_overnight_term": <your_INTEGER_value>,
+        "non_us_treasury_bills": <your_INTEGER_value>,
+        "us_treasury_other_notes_bonds": <your_INTEGER_value>,
+        "corporate_bonds": <your_INTEGER_value>,
+        "precious_metals": <your_INTEGER_value>,
+        "digital_assets": <your_INTEGER_value>,
+        "secured_loans": <your_INTEGER_value>,
+        "other_investments": <your_INTEGER_value>,
+        "custodial_concentrated_asset": <your_INTEGER_value>,
+        "total_amount": <your_INTEGER_value>
+    }
+
+
     Here is the extracted dataframe: \n\n__tables__.
 """
 
