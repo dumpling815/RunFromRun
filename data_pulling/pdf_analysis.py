@@ -20,28 +20,29 @@ logger.setLevel(logging.DEBUG)
 
 
 
-def markdownize_tables(tables: list[pd.DataFrame]) -> str:
-    markdown_tables_str = ""
+def markdownize_tables(tables: list[pd.DataFrame]) -> list[str]:
+    markdown_tables = []
     for idx, df in enumerate(tables):
         # Keep up to MAX rows per table to avoid oversized prompts (adjust as needed)
+        df = df.fillna("").astype(str)
         markdown_table = df.to_markdown(index=False)
-        markdown_tables_str += f"Table {idx}:\n" + f"{markdown_table}\n\n"
-        
-    return markdown_tables_str
+        markdown_tables.append(markdown_table)
+    return markdown_tables
 
-def jsonize_tables(tables: list[pd.DataFrame]) -> str:
-    json_tables_str = ""
+def jsonize_tables(tables: list[pd.DataFrame]) -> list[str]:
+    json_tables = []
     for idx, df in enumerate(tables):
         # Keep up to MAX rows per table to avoid oversized prompts (adjust as needed)
-        sample = df.head(OLLAMASETTINGS.MAX_ROWS_PER_TABLE).fillna("").astype(str)
-        json_tables_str += f"Table {idx}:\n" + json.dumps({
+        df = df.fillna("").astype(str)
+        json_tables.append(
+        {
             "n_rows": int(df.shape[0]),
             "n_cols": int(df.shape[1]),
-            "rows": sample.values.tolist()
-        })
-        json_tables_str += "\n\n"
+            "rows": df.values.tolist()
+        }
+        )
 
-    return json_tables_str
+    return json_tables
 
 def complete_user_prompt(str_tables_list: list[str], template: str) -> str:
     tables_str = "\n\n".join(str_tables_list)
@@ -157,7 +158,7 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     # => 일반적으로 Markdown 형식이 더 안정적임. LLM 학습 시에 표 형식을 markdown 형태로 많이 접했을 가능성이 높음.
     try:
         #json_tables_str: str = jsonize_tables(tables)
-        markdown_tables_str: str = markdownize_tables(tables)
+        markdown_tables_list: list[str] = markdownize_tables(tables)
     except Exception as e:
         logger.error(f"Error converting tables to Markdown(or JSON) for PDF {pdf_path.name}: {e}")
         raise RuntimeError(f"Dataframe to Markdown(or JSON) conversion failed for {pdf_path.name}") from e
@@ -167,7 +168,7 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
 
     # ============== 4. User Prompt에 string으로 변환된 표 주입 ==============
     #user_prompt = complete_user_prompt(json_tables_str, USER_PROMPT_TEMPLATE)
-    user_prompt = complete_user_prompt(markdown_tables_str, USER_PROMPT_TEMPLATE)
+    user_prompt = complete_user_prompt(markdown_tables_list, USER_PROMPT_TEMPLATE)
     logger.debug(f"Constructed user prompt for LLM.")  
     delay_dict["preprocess_delay"] = time.time() - e2e_start_time
 
