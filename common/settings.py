@@ -150,7 +150,7 @@ SYSTEM_PROMPT = """
         **Source Terms:** Tether — “Non-U.S. Treasury Bills”.
 
         #### (7) us_treasury_other_notes_bonds
-        **Definition:** U.S. Treasury notes or bonds (coupon-bearing securities, maturity >1 year). NOTE THAT THIS EXCLUDES COPORATE BONDS.
+        **Definition:** U.S. Treasury notes or bonds (coupon-bearing securities, maturity >1 year). NOTE THAT THIS EXCLUDES CORPORATE BONDS.
         **Examples:** “U.S. Treasury Notes”, “U.S. Treasury Bonds”, “TIPS (U.S.)”.  
         **Source Terms:** Appears in some extended reports where longer-maturity Treasuries are held separately.
 
@@ -188,7 +188,7 @@ SYSTEM_PROMPT = """
     - But same value from report should not be double-counted into multiple schema fields.
 
     2) **Use Instrument Codes (CUSIP, ISIN, Ticker)**
-    - The preprocessor will most likely have converted the CUSIP code into an interpreter. If it hasn't, follow the instructions below.
+    - There might be CUSIP, ISIN code included in data.
     - Use your financial knowledge to classify the instrument and map it into the correct category.
     - For example, CUSIP number '912797MS3' is 42-Day Treasury Bill and CUSIP number '912797RB5' is 119-Day Treasury Bill. You have to infer the asset type with given CUSIP number, and add into correct category (in this case, us_treasury_bills)
 
@@ -209,7 +209,6 @@ SYSTEM_PROMPT = """
     - Ensure every schema key exists and is an object with the required fields.
     - Ensure numeric fields are numbers (**not strings neither sub-json**).
     - Compute `total_amount` as the **sum** of all `amount` fields you filled (even when some are 0).
-    - Ensure all amounts ≥ 0 and ratios ∈ [0, 100] when present.
 
     6) **Output Format**
     - Output: **ONLY** one JSON object that matches the given schema exactly.
@@ -244,23 +243,8 @@ SYSTEM_PROMPT = """
     - If any check fails, **fix**.
 """
 USER_PROMPT_TEMPLATE = """
-    You will get _tablenum_ dataframes extracted from a financial report PDF, extract the asset information and fill the given JSON format as specified below.
-    {
-        "cash_bank_deposits": <your_INTEGER_value>,
-        "us_treasury_bills": <your_INTEGER_value>,
-        "gov_mmf": <your_INTEGER_value>,
-        "other_deposits": <your_INTEGER_value>,
-        "repo_overnight_term": <your_INTEGER_value>,
-        "non_us_treasury_bills": <your_INTEGER_value>,
-        "us_treasury_other_notes_bonds": <your_INTEGER_value>,
-        "corporate_bonds": <your_INTEGER_value>,
-        "precious_metals": <your_INTEGER_value>,
-        "digital_assets": <your_INTEGER_value>,
-        "secured_loans": <your_INTEGER_value>,
-        "other_investments": <your_INTEGER_value>,
-        "custodial_concentrated_asset": <your_INTEGER_value>,
-        "total_amount": <your_INTEGER_value>
-    }
+    You will get _tablenum_ dataframes extracted from a financial report PDF, extract the asset information and fill the given JSON format as specified in system prompt.
+    
     Here is the extracted dataframe: \n\n__tables__.
 """
 
