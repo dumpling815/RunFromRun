@@ -1,16 +1,12 @@
 # Pipeline for testing RfR server.
 from datetime import datetime
+from data_pulling.dataframe_process import get_tables_from_pdf
 from pathlib import Path
+from rich import print
 import pandas as pd
 import camelot, fitz, re  # PyMuPDF
 
 
-USDC_PDF_PATH = "./report/USDC.pdf"
-USDT_PDF_PATH = "./report/USDT.pdf"
-FDUSD_PDF_PATH = "./report/FDUSD.pdf"
-PYUSD_PDF_PATH = "./report/PYUSD.pdf"
-TUSD_PDF_PATH = "./report/TUSD.pdf"
-USDP_PDF_PATH = "./report/USDP.pdf"
 
 # PDF 분석 함수
 def get_pdf_style(pdf_path, sample_pages=3):
@@ -174,41 +170,39 @@ def post_process_tables(tables: camelot.core.TableList) -> list[pd.DataFrame]:
         
     return processed_tables
 
-pdf_path = USDC_PDF_PATH
 
 # paths = [USDC_PDF_PATH, USDT_PDF_PATH, FDUSD_PDF_PATH, PYUSD_PDF_PATH, TUSD_PDF_PATH, USDP_PDF_PATH]
 # for i in paths:
 #     pdf_format = get_pdf_style(i)
 #     print(f"{Path(i).name}: {pdf_format}")
+def markdownize_tables(tables: list[pd.DataFrame]) -> list[str]:
+    markdown_tables = []
+    for idx, df in enumerate(tables):
+        # Keep up to MAX rows per table to avoid oversized prompts (adjust as needed)
+        df = df.fillna("").astype(str)
+        markdown_table = df.to_markdown(index=False)
+        markdown_tables.append(markdown_table)
+    return markdown_tables
 
+if __name__ == "__main__":
+    USDC_PDF_PATH = "./test/report/USDC.pdf"
+    USDT_PDF_PATH = "./test/report/USDT.pdf"
+    FDUSD_PDF_PATH = "./test/report/FDUSD.pdf"
+    PYUSD_PDF_PATH = "./test/report/PYUSD.pdf"
+    TUSD_PDF_PATH = "./test/report/TUSD.pdf"
+    USDP_PDF_PATH = "./test/report/USDP.pdf"
 
-pdf_format = get_pdf_style(pdf_path)
-
-if pdf_format == "text":
-    tables = camelot.read_pdf( # USDC Setting
-        pdf_path, 
-        pages='2-end', 
-        flavor='hybrid',
-        strip_text='\n', # 셀 내부의 줄바꿈 문자가 계속 포함되는 문제가 있어 제거
-        split_text=False, # 셀 내부의 텍스트가 여러 셀로 분리되는 문제 방지, 기본값이지만 명시
-        row_tol=15, # 기본값은 2, 너무 낮은 경우에는 같은 행에 있는 Pdf의 텍스트가 df의 다른 행으로 분리되는 현상이 발생할 수 있음.
-        column_tol=3,
-        layout_kwargs={
-            "word_margin": 1.0,   # 단어 간 거리 허용 ↑
-            "line_margin": 1.5,   # 줄 병합 여유 ↑
-            #"boxes_flow": -1,      # 수평 정렬(표형 데이터)에 가중치
-        }
-        )
-    # tables = camelot.read_pdf( #USDT setting
-    #     pdf_path,
-    #     pages = '2-end',
-    #     flavor = 'lattice',
-    #     strip_text='\n',
-    # )
-    tables = filter_valid_tables(tables)
-    tables = post_process_tables(tables)
-    for i, table in enumerate(tables):
-        print(f"Table {i}:")
-        print(table)
+    for coin in ["USDT","USDC","FDUSD","PYUSD","TUSD","USDP"]:
+        tables = get_tables_from_pdf(f"./test/report/{coin}.pdf",coin)
+        print(f"==================={coin}======================")
+        print(f"===================Total {len(tables)} tables extracted==============================")
+        for table in tables:
+            print(markdownize_tables([table])[0])
+            print(f"###############################################")
+        print(f"==================={coin}======================")
+        print("=========================================================")
+        a = input("continue?")
+        if a == 'y':
+            continue
 
 

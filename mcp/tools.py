@@ -1,5 +1,6 @@
+from RunFromRun.index_calculation import rrs
 from data_pulling import get_macro, get_onchain, slm_ocr
-from index_calculation import ohs, rcr, rqs, trs
+from index_calculation import ohs, rqs, trs
 from common.schema import Indices, Index, Request, Response
 from datetime import datetime
 import asyncio
@@ -11,7 +12,7 @@ async def _preprocess() -> None:
 async def _get_indices() -> dict:
     """Calculate OHS, RCR, RQS indices."""
     ohs_index: Index = await ohs.ohs_calculator()
-    rcr_index: Index = await rcr.rcr_calculator()
+    rcr_index: Index = await rrs.rcr_calculator()
     rqs_index: Index = await rqs.rqs_calculator()
     return Indices(rcr=rcr_index, ohs=ohs_index, rqs=rqs_index)
 
