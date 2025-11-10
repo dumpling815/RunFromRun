@@ -215,7 +215,7 @@ SYSTEM_PROMPT = """
     - Output: **ONLY** one JSON object that matches the given schema exactly.
     - Note that following JSON schema is created by json.dumps(<pydantic BaseModel>.model_json_schema()).
     - Here is following the JSON schema you must follow:\n\n __json_schema__.
-    - Example Output: (YOUR ONLY DUE IS TO FILL **<your_value>** WITH THE CORRECT NUMBER YOU EXTRACTED)
+    - Example Output: (YOUR ONLY DUTY IS TO FILL **<your_value>** WITH THE CORRECT NUMBER YOU EXTRACTED)
     {
         "cash_bank_deposits": <your_INTEGER_value>,
         "us_treasury_bills": <your_INTEGER_value>,
@@ -233,7 +233,7 @@ SYSTEM_PROMPT = """
         "total_amount": <your_INTEGER_value>
     }
     - NO EXPLANATIONS, NO COMMENTS, NO PROSE OUTSIDE OF JSON.
-    - **DO NOT FIX THE STRUCTURE OF FORMAT. PUTTING SUB-JSON FORMAT IN YOUR PLACE IS NOT ALLOWED**
+    - ** DO NOT FIX THE STRUCTURE OF FORMAT. PUTTING SUB-JSON FORMAT IN YOUR PLACE IS NOT ALLOWED**
     - ** YOU MUST WRITE VERY VERY STRICTLY FOLLOWING THE EXAMPLE FORMAT GIVEN BELOW **
 
     7) **Self Check Befor Emitting**
