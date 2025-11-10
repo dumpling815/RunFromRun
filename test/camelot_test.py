@@ -2,6 +2,7 @@
 from datetime import datetime
 from data_pulling.dataframe_process import get_tables_from_pdf
 from pathlib import Path
+from common.settings import CAMELOT_MODE
 from rich import print
 import pandas as pd
 import camelot, fitz, re  # PyMuPDF
@@ -191,10 +192,13 @@ if __name__ == "__main__":
     PYUSD_PDF_PATH = "./test/report/PYUSD.pdf"
     TUSD_PDF_PATH = "./test/report/TUSD.pdf"
     USDP_PDF_PATH = "./test/report/USDP.pdf"
+    ["USDT","USDC","FDUSD","PYUSD","TUSD","USDP"]
 
-    for coin in ["USDT","USDC","FDUSD","PYUSD","TUSD","USDP"]:
+    hybrid_list = ["USDC","FDUSD","TUSD"] # 
+    for coin in hybrid_list:
         tables = get_tables_from_pdf(f"./test/report/{coin}.pdf",coin)
         print(f"==================={coin}======================")
+        print(f"++++++++++++++Camelot Mode: {CAMELOT_MODE[coin]} ++++++++++++++++++")
         print(f"===================Total {len(tables)} tables extracted==============================")
         for table in tables:
             print(markdownize_tables([table])[0])

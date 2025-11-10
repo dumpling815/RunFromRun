@@ -40,7 +40,7 @@ def filter_valid_tables(tables: camelot.core.TableList):
     def table_about_outstanding_token(cell) -> bool:
         if not isinstance(cell, str):
             return False
-        return 'outstanding' in cell.lower() or 'inssuance' in cell.lower()
+        return 'outstanding' in cell.lower() or 'inssuance' in cell.lower() or 'minted' in cell.lower()
     
     valid_tables = []
     for table in tables:
@@ -203,8 +203,8 @@ def get_tables_from_pdf(pdf_path: str, stablecoin: str) -> list[pd.DataFrame]:
                     flavor= CAMELOT_MODE[stablecoin],
                     strip_text='\n', # 셀 내부의 줄바꿈 문자가 계속 포함되는 문제가 있어 제거
                     split_text=False, # 셀 내부의 텍스트가 여러 셀로 분리되는 문제 방지, 기본값이지만 명시
-                    row_tol=15, # 기본값은 2, 너무 낮은 경우에는 같은 행에 있는 Pdf의 텍스트가 df의 다른 행으로 분리되는 현상이 발생할 수 있음.
-                    column_tol=10,
+                    row_tol=14, # 기본값은 2, 너무 낮은 경우에는 같은 행에 있는 Pdf의 텍스트가 df의 다른 행으로 분리되는 현상이 발생할 수 있음.
+                    column_tol=8,
                     layout_kwargs={
                         "word_margin": 1.0,   # 단어 간 거리 허용 ↑
                         "line_margin": 1.5,   # 줄 병합 여유 ↑
