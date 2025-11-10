@@ -157,7 +157,7 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     # ============== 2. 데이터프레임들을 LLM 입력용 JSON 혹은 Mardown으로 변환 ==============
     # => 일반적으로 Markdown 형식이 더 안정적임. LLM 학습 시에 표 형식을 markdown 형태로 많이 접했을 가능성이 높음.
     try:
-        #json_tables_str: str = jsonize_tables(tables)
+        #json_tables_str: list[str] = jsonize_tables(tables)
         markdown_tables_list: list[str] = markdownize_tables(tables)
     except Exception as e:
         logger.error(f"Error converting tables to Markdown(or JSON) for PDF {pdf_path.name}: {e}")

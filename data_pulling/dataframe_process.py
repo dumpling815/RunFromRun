@@ -35,7 +35,19 @@ def filter_valid_tables(tables: camelot.core.TableList):
     # 현재 필터링 조건:
     # 1) 최소한의 열이 있는지 확인 (2열 이상) -> 모든 자산 테이블에는 자산의 명칭과 그 값이 있기 때문에 최소 2열 이상이 되어야함.
     # 2) 왼쪽 열의 평균 길이가 너무 길면 잘못 추출된 테이블로 간주 (100자 이상) -> 문단을 오인하는 경우는 해당 문장이 전부 왼쪽 열에 들어가기 때문.
+    # 3) '자산' 표만 추출해야하는데 발행량 표가 섞여 들어올 수 있고, LLM이 이를 코인 자산으로 오인 가능 -> 'outstanding'제외
     # 이외 필터링 조건은 추후 필요시 추가 가능.
+    def table_about_outstanding_token(df: pd.DataFrame) -> bool:
+        # 표 전체 텍스트에서 키워드 탐지 (대소문자 무시)
+        KEYWORDS = r'\boutstanding\b'
+        if df.empty:
+            return False
+        # 문자열화 후 키워드 서치
+        mask = df.astype(str).apply(
+            lambda col: col.str.contains('|'.join(KEYWORDS), case=False, regex=True, na=False)
+        )
+        return bool(mask.any().any())
+    
     valid_tables = []
     for table in tables:
         df = table.df
@@ -48,6 +60,9 @@ def filter_valid_tables(tables: camelot.core.TableList):
         avg_len_2 = next_left_col.apply(len).mean()
         if avg_len_1 > 70 or avg_len_2 > 70:  #필터링 조건2: 왼쪽 열의 평균 길이가 너무 길면 잘못 추출된 테이블로 간주
             continue
+        if table_about_outstanding_token(df):
+            continue
+        
         valid_tables.append(table)
     return valid_tables
 
