@@ -194,8 +194,9 @@ if __name__ == "__main__":
     USDP_PDF_PATH = "./test/report/USDP.pdf"
     ["USDT","USDC","FDUSD","PYUSD","TUSD","USDP"]
 
-    hybrid_list = ["USDC","FDUSD","TUSD"] # 
-    for coin in hybrid_list:
+    hybrid_list = ["USDC","FDUSD","TUSD"] 
+    lattice_list = ["USDT","PYUSD","USDP"]
+    for coin in lattice_list:
         tables = get_tables_from_pdf(f"./test/report/{coin}.pdf",coin)
         print(f"==================={coin}======================")
         print(f"++++++++++++++Camelot Mode: {CAMELOT_MODE[coin]} ++++++++++++++++++")
