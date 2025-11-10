@@ -119,7 +119,7 @@ SYSTEM_PROMPT = """
         Be precise, and map each source term to the most appropriate target schema item.
 
         #### (1) cash_bank_deposits
-        **Definition:** US dollars and other deposits with comparable liquidity and stability, held in regulated financial institutions or custodians with same-day availability.  
+        **Definition:** US dollars deposits with comparable liquidity and stability, held in regulated financial institutions or custodians with same-day availability.  
         **Examples:** “Cash and cash equivalents”, “Bank deposits”, “Cash held at regulated financial institutions”, “Operating cash”, “Cash & Bank Deposits”.  
         **Source Terms:** USDC — “Cash held at regulated financial institutions”; PYUSD — “Cash”; USDP — “Cash”; FDUSD — “Total U.S. Dollars Held”; TUSD — “US Dollars Cash”; Tether — “Cash & Bank Deposits”.
 
@@ -197,7 +197,7 @@ SYSTEM_PROMPT = """
     - For example, CUSIP number '912797MS3' is 42-Day Treasury Bill and CUSIP number '912797RB5' is 119-Day Treasury Bill. You have to infer the asset type with given CUSIP number, and add into correct category (in this case, us_treasury_bills)
 
     3) **Parse Numbers & Units Robustly**
-    - Strip currency symbols (e.g., `$`), commas, and footnote markers.
+    - Strip currency symbols (e.g., `$`)
     - Parentheses indicate negatives; treat them as negative values only if it is clearly a subtraction. Most reserve tables list positive holdings.
     - All `amount` values must be in **US DOLLARS** (NOT THOUSANDS/MILLIONS USD). If the table header indicates scale (e.g., "in millions"), MULTIPLY ACCORDINGLY (UNIT MAY BE DIFFER PER TABLE).
     - DIGIT ERRORS ARE ABSOLUTELY UNACCEPTABLE.
@@ -210,19 +210,15 @@ SYSTEM_PROMPT = """
 
     5) **Validate Before Emitting JSON**
     - Ensure every schema key exists and is an object with the required fields.
-    - Ensure numeric fields are numbers (not strings neither sub-json).
+    - Ensure numeric fields are numbers (**not strings neither sub-json**).
     - Compute `total_amount` as the **sum** of all `amount` fields you filled (even when some are 0).
     - Ensure all amounts ≥ 0 and ratios ∈ [0, 100] when present.
-    - If a ratio is present but amount is missing, infer amount when the report provides `total` and ratios (amount = total × ratio/100). Only do this when the relation is explicitly implied by the table.
 
     6) **Output Format**
     - Output: **ONLY** one JSON object that matches the given schema exactly.
     - Note that following JSON schema is created by json.dumps(<pydantic BaseModel>.model_json_schema()).
     - Here is following the JSON schema you must follow:\n\n __json_schema__.
-    - NO EXPLANATIONS, NO COMMENTS, NO PROSE OUTSIDE OF JSON.
-    - DO NOT FIX THE STRUCTURE OF FORMAT. PUTTING SUB-JSON FORMAT IN YOUR PLACE IS NOT ALLOWED
     - Example Output: (YOUR ONLY DUE IS TO FILL INTEGER VALUE **<your_value>** WITH THE CORRECT NUMBER YOU EXTRACTED)
-    - ** YOU MUST WRITE VERY VERY STRICTLY FOLLOWING THE EXAMPLE FORMAT GIVEN BELOW **
     {
         "cash_bank_deposits": <your_INTEGER_value>,
         "us_treasury_bills": <your_INTEGER_value>,
@@ -239,15 +235,19 @@ SYSTEM_PROMPT = """
         "custodial_concentrated_asset": <your_INTEGER_value>,
         "total_amount": <your_INTEGER_value>
     }
+    - NO EXPLANATIONS, NO COMMENTS, NO PROSE OUTSIDE OF JSON.
+    - **DO NOT FIX THE STRUCTURE OF FORMAT. PUTTING SUB-JSON FORMAT IN YOUR PLACE IS NOT ALLOWED**
+    - ** YOU MUST WRITE VERY VERY STRICTLY FOLLOWING THE EXAMPLE FORMAT GIVEN BELOW **
+
     7) **Self Check Befor Emitting**
     - Before you print, run this mental checklist:
     - 1) Keys: exactly the schema keys, all present, no extras, double-quoted.
-    - 2) Values: integers only, no quotes, no commas, no decimals, >= 0. Unit Must be US Dollar
+    - 2) Values: integers only, no quotes, no commas. Unit Must be US Dollar
     - 3) JSON is minified and begins with `{` and ends with `}` with **no extra characters**.
-    - If any check fails, **fix, but does not touch values or units, just schema** and then print the corrected JSON.
+    - If any check fails, **fix**.
 """
 USER_PROMPT_TEMPLATE = """
-    You will get _tablenum_ dataframes the follwing dataframe extracted from a financial report PDF, extract the asset information and fill the given JSON format as specified below.
+    You will get _tablenum_ dataframes extracted from a financial report PDF, extract the asset information and fill the given JSON format as specified below.
     {
         "cash_bank_deposits": <your_INTEGER_value>,
         "us_treasury_bills": <your_INTEGER_value>,
