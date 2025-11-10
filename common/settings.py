@@ -199,7 +199,7 @@ SYSTEM_PROMPT = """
     3) **Parse Numbers & Units Robustly**
     - Strip currency symbols (e.g., `$`), commas, and footnote markers.
     - Parentheses indicate negatives; treat them as negative values only if it is clearly a subtraction. Most reserve tables list positive holdings.
-    - All `amount` values must be in **US dollars** (NOT THOUSANDS/MILLIONS). If the table header indicates scale (e.g., "in millions"), MULTIPLY ACCORDINGLY.
+    - All `amount` values must be in **US DOLLARS** (NOT THOUSANDS/MILLIONS USD). If the table header indicates scale (e.g., "in millions"), MULTIPLY ACCORDINGLY (UNIT MAY BE DIFFER PER TABLE).
     - DIGIT ERRORS ARE ABSOLUTELY UNACCEPTABLE.
     - Be careful with numbers that contains ',' you should interpret them as thousands separator, not decimal point.
     - A comma should **never** be considered a decimal point.
