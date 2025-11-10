@@ -21,27 +21,27 @@ logger.setLevel(logging.DEBUG)
 
 
 def markdownize_tables(tables: list[pd.DataFrame]) -> str:
-    markdown_tables = []
+    markdown_tables_str = ""
     for idx, df in enumerate(tables):
         # Keep up to MAX rows per table to avoid oversized prompts (adjust as needed)
         markdown_table = df.to_markdown(index=False)
-        markdown_tables.append(markdown_table)
-
-    return markdown_tables
+        markdown_tables_str += f"Table {idx}:\n" + f"{markdown_table}\n\n"
+        
+    return markdown_tables_str
 
 def jsonize_tables(tables: list[pd.DataFrame]) -> str:
-    json_tables = []
+    json_tables_str = ""
     for idx, df in enumerate(tables):
         # Keep up to MAX rows per table to avoid oversized prompts (adjust as needed)
         sample = df.head(OLLAMASETTINGS.MAX_ROWS_PER_TABLE).fillna("").astype(str)
-        json_tables.append({
-            "table_index": idx,
+        json_tables_str += f"Table {idx}:\n" + json.dumps({
             "n_rows": int(df.shape[0]),
             "n_cols": int(df.shape[1]),
             "rows": sample.values.tolist()
         })
+        json_tables_str += "\n\n"
 
-    return json_tables
+    return json_tables_str
 
 def complete_user_prompt(str_tables_list: list[str], template: str) -> str:
     tables_str = "\n\n".join(str_tables_list)
