@@ -169,7 +169,6 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     # ============== 4. User Prompt에 string으로 변환된 표 주입 ==============
     #user_prompt = complete_user_prompt(json_tables_str, USER_PROMPT_TEMPLATE)
     user_prompt = complete_user_prompt(markdown_tables_list, USER_PROMPT_TEMPLATE)
-    user_prompt.replace(",","") # DEBUG, 쉼표 없애면 인식 오류가 낮아지는지 확인
     logger.debug(f"Constructed user prompt for LLM.")  
     delay_dict["preprocess_delay"] = time.time() - e2e_start_time
 

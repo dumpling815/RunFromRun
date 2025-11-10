@@ -3,7 +3,7 @@ from datetime import datetime
 from data_pulling.dataframe_process import get_tables_from_pdf
 from pathlib import Path
 from common.settings import CAMELOT_MODE
-from rich import print
+# from rich import print
 import pandas as pd
 import camelot, fitz, re  # PyMuPDF
 
