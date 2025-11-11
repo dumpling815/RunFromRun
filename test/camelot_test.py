@@ -1,6 +1,6 @@
 # Pipeline for testing RfR server.
 from datetime import datetime
-from data_pulling.dataframe_process import get_tables_from_pdf
+from data_pulling.dataframe_process import get_tables_from_pdf, get_pdf_style
 from pathlib import Path
 from common.settings import CAMELOT_MODE
 from rich import print
@@ -21,17 +21,11 @@ def markdownize_tables(tables: list[pd.DataFrame]) -> list[str]:
     return markdown_tables
 
 if __name__ == "__main__":
-    USDC_PDF_PATH = "./test/report/USDC.pdf"
-    USDT_PDF_PATH = "./test/report/USDT.pdf"
-    FDUSD_PDF_PATH = "./test/report/FDUSD.pdf"
-    PYUSD_PDF_PATH = "./test/report/PYUSD.pdf"
-    TUSD_PDF_PATH = "./test/report/TUSD.pdf"
-    USDP_PDF_PATH = "./test/report/USDP.pdf"
     ["USDT","USDC","FDUSD","PYUSD","TUSD","USDP"]
 
     hybrid_list = ["USDC","FDUSD","TUSD"] 
     lattice_list = ["USDT","PYUSD","USDP"]
-    for coin in hybrid_list:
+    for coin in ["FDUSD", "TUSD"]:
         tables = get_tables_from_pdf(f"./test/report/{coin}.pdf",coin)
         print(f"==================={coin}======================")
         print(f"++++++++++++++Camelot Mode: {CAMELOT_MODE[coin]} ++++++++++++++++++")

@@ -5,7 +5,7 @@ from common.settings import AVAILABLE
 # from uuid import uuid4 # timestamp가 아닌 unique id가 필요한가? -> 만일 DB에 저장한다면 필요할 수 있음.
 
 class Asset(BaseModel):
-    tier: Literal[1, 2, 3, 4, 5] = Field(..., frozen=True)
+    tier: Literal[0, 1, 2, 3, 4, 5] = Field(..., frozen=True) # 0 is for total amount
     qls_score: float = Field(..., ge=0, le=1, frozen=True)
     amount: float | None = Field(...,) # US dollar amount (부채의 경우 음수로 표기되는 경우도 있으므로 ge=0 삭제)
     ratio: float | None = Field(..., ge=0, le=100)
@@ -23,7 +23,7 @@ class AssetTable(BaseModel):
     # Tier 3 Assets
     corporate_bonds: Asset = Asset(tier=3, qls_score=0.7, amount=None, ratio=None)
     precious_metals: Asset = Asset(tier=3, qls_score=0.6, amount=None, ratio=None)
-    digital_assets: Asset = Asset(tier=3, qls_score=0.4, amount=None, ratio=None)
+    digital_assets: Asset = Asset( tier=3, qls_score=0.4, amount=None, ratio=None)
     # Tier 4 Assets 
     secured_loans: Asset = Asset(tier=4, qls_score=0.2, amount=None, ratio=None)
     other_investments: Asset = Asset(tier=4, qls_score=0.1, amount=None, ratio=None)
@@ -33,14 +33,7 @@ class AssetTable(BaseModel):
     # 1 - correction_value.ratio를 신뢰도 지표로 사용할 수 있음 (보정치로 계산된 비율이 높다 => 신뢰도가 낮다)
     correction_value: Asset = Asset(tier=5, qls_score=0.0, amount=None, ratio=None)
     # Total Amount
-    total_amount: float = Field(..., ge=0) 
-    
-    tier_table: dict[int, list[str]] = {
-        1: ["cash_bank_deposits", "us_treasury_bills", "gov_mmf", "other_deposits"],
-        2: ["repo_overnight_term", "non_us_treasury_bills", "us_treasury_other_notes_bonds"],
-        3: ["corporate_bonds", "precious_metals", "digital_assets"],
-        4: ["secured_loans", "other_investments", "custodial_concentrated_asset"],
-    }
+    total: Asset = Asset(tier=0, qls_score=0.0, amount=None, ratio=100)
 
     # Pretty-printing helpers and __str__ override
     _FIELD_ORDER = [
@@ -85,7 +78,7 @@ class AssetTable(BaseModel):
                 self._fmt_ratio(a.ratio),
             ])
 
-        total_line = ["TOTAL", "", "", self._fmt_amount(self.total_amount), ""]
+        total_line = ["TOTAL", "", "", self._fmt_amount(self.total.amount), ""]
 
         # Compute column widths
         cols = list(zip(*([header] + rows + [total_line])))
@@ -97,11 +90,17 @@ class AssetTable(BaseModel):
         sep = "-+-".join("-" * w for w in widths)
         lines = [fmt_row(header), sep] + [fmt_row(r) for r in rows] + [sep, fmt_row(total_line)]
         return "\n".join(lines)
-
+    
     def to_list(self) -> list[(str,Asset)]:
         """Return a list of all Asset objects in the AssetTable."""
-        return [(key,value) for key, value in self.model_dump().items()]
+        return [(key,getattr(self,key)) for key in self.model_dump().keys()]
 
+    def to_dict(self) -> dict[str,Asset]:
+        """Return a list of all Asset objects in the AssetTable."""
+        res = {}
+        for key in self.mode_dump().keys():
+            res[key] = getattr(self,key)
+        return res
 
 # LLM 입력용 모델
 class AmountsOnly(BaseModel):
@@ -124,18 +123,18 @@ class AmountsOnly(BaseModel):
 
     # correction value는 LLM 응답 후 계산되므로 입력 모델에는 포함하지 않음.
 
-    total_amount: Optional[float] = Field(..., ge=0)
+    total: Optional[float] = Field(..., ge=0)
 
     def to_asset_table(self) -> AssetTable:
-        asset_table = AssetTable(total_amount=self.total_amount)
+        asset_table = AssetTable(total=self.total)
         sum = 0.0
         for field_name, value in self.dict().items():
-            if field_name != "total_amount" and value is not None:
+            if field_name != "total" and value is not None:
                 sum += value
                 getattr(asset_table, field_name).amount = value
-                getattr(asset_table, field_name).ratio = (value / self.total_amount) * 100 if self.total_amount > 0 else 0
-        asset_table.correction_value.amount = max(0.0, self.total_amount - sum)
-        asset_table.correction_value.ratio = (asset_table.correction_value.amount / self.total_amount) * 100 if self.total_amount > 0 else 0
+                getattr(asset_table, field_name).ratio = (value / self.total) * 100 if self.total > 0 else 0
+        asset_table.correction_value.amount = max(0.0, self.total - sum)
+        asset_table.correction_value.ratio = (asset_table.correction_value.amount / self.total) * 100 if self.total > 0 else 0
         return asset_table
 
 class OnChainData(BaseModel):
@@ -146,7 +145,6 @@ class OnChainData(BaseModel):
     mint_burn_ratio: float = Field(..., ge=0, description="Ratio of minting to burning activities")
     TVL: float = Field(..., ge=0, description="Total Value Locked in USD")
     
-
 class CoinData(BaseModel):
     stablecoin_ticker: str = Field(..., pattern="^[A-Z]{3,5}$", description="Stablecoin symbol (3-5 uppercase letters)")
     description: str | None
@@ -196,7 +194,6 @@ class RfRRequest(BaseModel):
         if self._check_url_format(self.provenance.reports_url) is False:
             raise ValueError(f"Invalid URL Format: {self.provenance.reports_url}\nIt should start with https://")
         
-
 class RfRResponse(BaseModel):
     id: str = Field(default_factory=lambda: datetime.utcnow().strftime('%Y%m%d%H%M%S%f'), description="Unique ID based on timestamp")
     timestamp: datetime

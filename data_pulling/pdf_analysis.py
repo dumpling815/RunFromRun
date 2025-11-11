@@ -1,7 +1,6 @@
 from common.settings import OLLAMASETTINGS, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
 from common.schema import AssetTable, AmountsOnly, Asset
 from typing import Optional
-# from transformers import AutoTokenizer
 import matplotlib.pyplot as plt
 import pandas as pd
 from data_pulling.dataframe_process import get_tables_from_pdf
@@ -9,16 +8,15 @@ from  pathlib import Path
 import json, logging, time 
 from ollama import chat, ChatResponse, Options
 
-
 logger = logging.getLogger("pdf_analysis")
 logger.setLevel(logging.DEBUG)
 
+# 토큰 제한 확인
+# from transformers import AutoTokenizer
 # tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B")
 # text = SYSTEM_PROMPT.replace("__json_schema__", json.dumps(AmountsOnly.model_json_schema()))
 # tokens = tokenizer.encode(text)
 # print(len(tokens)+ 100)
-
-
 
 def markdownize_tables(tables: list[pd.DataFrame]) -> list[str]:
     markdown_tables = []
@@ -53,17 +51,17 @@ def complete_user_prompt(str_tables_list: list[str], template: str) -> str:
 def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
     # 홀수 개의 모델의 응답을 받아 해당 자산별로 중간값(median) 산출
     # 기본적으로 명확하지 않은 value에 대해서는 보수적으로 접근하여 더 작은 값을 선택하도록 함.
-    # 왜냐하면 더 작은 값을 선택하면 total_amount를 맞추기 위해 correction_value가 더 커짐.
+    # 왜냐하면 더 작은 값을 선택하면 total을 맞추기 위해 correction_value가 더 커짐.
     # 그리고 correction_value의 ratio는 추출된 데이터의 신뢰도를 나타내기 때문에 더욱 보수적인 접근을 수행함.
     # 모델이 None으로 응답한 것과, 0.0으로 응답한 것은 구별되어야 함.
     # 0.0은 해당 자산이 없다는 의미이나, None은 모델이 해당 자산에 대해 판단하지 못했다는 의미이기 때문.
     if amounts_list is None or len(amounts_list) == 0:
-        return AssetTable(total_amount=0.0)
+        return AssetTable()
     ASSET_NAMES = [
         "cash_bank_deposits", "us_treasury_bills", "gov_mmf", "other_deposits",
         "repo_overnight_term", "non_us_treasury_bills", "us_treasury_other_notes_bonds",
         "corporate_bonds", "precious_metals", "digital_assets",
-        "secured_loans", "other_investments", "custodial_concentrated_asset", "total_amount"
+        "secured_loans", "other_investments", "custodial_concentrated_asset", "total"
     ] 
     voted_assets = {}
     asset_sum = 0.0
@@ -88,11 +86,11 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
             median_amount = asset_amounts[(valid_votes_num - 1) // 2] # n이 짝수여도 같은 방식 적용 : 더 작은 값을 선택하여 더 보수적으로 접근
         
         voted_assets[asset_name] = median_amount
-        if asset_name != "total_amount":
+        if asset_name != "total":
             asset_sum += median_amount 
 
-    # total_amount가 표에서 추출 자체가 안되는 edge case 존재할 수 있기 때문에, total_amount는 asset_sum과 비교하여 더 큰 값을 선택
-    voted_assets["total_amount"] = max(voted_assets["total_amount"], asset_sum)
+    # total이 표에서 추출 자체가 안되는 edge case 존재할 수 있기 때문에, total은 asset_sum과 비교하여 더 큰 값을 선택
+    voted_assets["total"] = max(voted_assets["total"], asset_sum)
     result:AssetTable =  AmountsOnly.model_validate(voted_assets).to_asset_table()
 
     return result
@@ -105,14 +103,12 @@ def delay_dict_to_list(delay_dict: dict[str,float]) -> list[(str,float)]:
 
 # Analysis 결과 시각화 함수
 def plotit_asset_tables(stablecoin:str, asset_table: AssetTable):
-    asset_list: list[(str,dict)] = asset_table.to_list()
+    asset_list: list[(str,Asset)] = asset_table.to_list()
     asset_names = []
     asset_values = []
-    for tup in asset_list[:14]:
+    for tup in asset_list:
         asset_names.append(tup[0])
-        asset_values.append(tup[1]["amount"])
-    asset_names.append(f"{stablecoin} Total Amount")
-    asset_values.append(asset_table.total_amount)
+        asset_values.append(tup[1].amount)
     plt.figure(figsize=(10, 6))
     plt.bar(asset_names, asset_values)
     plt.title(f'Asset proportion : {stablecoin}')
@@ -122,7 +118,6 @@ def plotit_asset_tables(stablecoin:str, asset_table: AssetTable):
     plt.tight_layout()   # 라벨 잘림 방지
     plt.savefig(f'{stablecoin}_pdf_analysis_assets.png')
         
-
 def plotit_delay(stablecoin: str,delay_tup_list: list[(str,float)], model_nums: int):
     delay_name=[]
     delay_time=[]

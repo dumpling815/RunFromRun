@@ -193,7 +193,6 @@ SYSTEM_PROMPT = """
     - For example, CUSIP number '912797MS3' is 42-Day Treasury Bill and CUSIP number '912797RB5' is 119-Day Treasury Bill. You have to infer the asset type with given CUSIP number, and add into correct category (in this case, us_treasury_bills)
 
     3) **Parse Numbers & Units Robustly**
-    - Strip currency symbols (e.g., `$`)
     - Parentheses indicate negatives; treat them as negative values only if it is clearly a subtraction. Most reserve tables list positive holdings.
     - All `amount` values must be in **US DOLLARS** (NOT THOUSANDS/MILLIONS USD). If the table header indicates scale (e.g., "in millions"), MULTIPLY ACCORDINGLY (UNIT MAY BE DIFFER PER TABLE).
     - DIGIT ERRORS ARE ABSOLUTELY UNACCEPTABLE.
