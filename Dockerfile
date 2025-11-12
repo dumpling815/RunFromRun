@@ -1,11 +1,23 @@
-FROM ubuntu:20.04
+# Build image by following command.
+# docker buildx build --env-file .env -t (your_repository):(tag) --push .
+FROM python:3.12-slim
 
-WORKDIR /app
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-COPY requirements.txt .
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    MPLBACKEND=Agg 
 
-RUN pip install -r requirements.txt
+
+WORKDIR /rfr
+
+# Dependency Layering
+
+COPY pyproject.toml uv.lock ./
+
+# Dependency building
+RUN uv sync --locked
 
 COPY . .
 
-CMD ["python", "app.py"]
+CMD ["uv", "run", "-m", "app.rfr_server"]

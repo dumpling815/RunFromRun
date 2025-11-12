@@ -6,7 +6,8 @@ import pandas as pd
 from data_pulling.dataframe_process import get_tables_from_pdf
 from  pathlib import Path
 import json, logging, time 
-from ollama import chat, ChatResponse, Options
+from ollama import AsyncClient, ChatResponse, Options
+# ollama client의 경우 default로 os.getenv('OLLAMA)
 
 logger = logging.getLogger("pdf_analysis")
 logger.setLevel(logging.DEBUG)
@@ -138,7 +139,7 @@ def plotit_delay(stablecoin: str,delay_tup_list: list[(str,float)], model_nums: 
 def analyze_pdf_api_call(pdf_path: Path, stablecoin: str) -> AssetTable:
     raise NotImplementedError("API call method is not implemented yet.")
 
-def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
+async def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     # ============== 1. PDF에서 데이터프레임 추출 ==============
     delay_dict: dict[str,float] = {}
     e2e_start_time = time.time()
@@ -170,11 +171,17 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
 
     # ============== 5. LLM 호출 및 응답 수집 ==============
     amounts_only_list: list[AmountsOnly] = []
+    try:
+        ollama_client = AsyncClient(host=OLLAMASETTINGS.HOST)
+    except Exception as e:
+        logger.error(f"Failed to Initiate Ollama Client. {e}")
+        raise RuntimeError(f"Ollama Initiate Failed from Host: {OLLAMASETTINGS.HOST}") from e
+        
     for model in OLLAMASETTINGS.MODELS:
         logger.debug(f"Calling LLM model **{model}** for PDF: {pdf_path.name}")
         model_start_time = time.time()
         try:
-            response: ChatResponse = chat(
+            response: ChatResponse = await ollama_client.chat(
                 model=model,
                 format = "json",
                 messages = [
@@ -225,36 +232,3 @@ def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     plotit_delay(stablecoin, delay_list, len(OLLAMASETTINGS.MODELS))
 
     return asset_table
-
-
-# ============== 테스트 로직 ==============
-if __name__ == "__main__":
-    import sys
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        stream=sys.stdout,
-    )
-    pdf_path = Path("./test/report/USDT.pdf") # [DEBUG] 테스트용 PDF 경로 => USDT 정상 작동 확인
-    result_table = analyze_pdf_local_llm(pdf_path, stablecoin="USDT")
-    plotit_asset_tables(stablecoin="USDT", asset_table=result_table)
-    
-    pdf_path = Path("./test/report/USDC.pdf") # [DEBUG] 테스트용 PDF 경로
-    result_table = analyze_pdf_local_llm(pdf_path, stablecoin="USDC")
-    plotit_asset_tables(stablecoin="USDC", asset_table=result_table)
-
-    pdf_path = Path("./test/report/FDUSD.pdf") # [DEBUG] 테스트용 PDF 경로
-    result_table = analyze_pdf_local_llm(pdf_path, stablecoin="FDUSD")
-    plotit_asset_tables(stablecoin="FDUSD", asset_table=result_table)
-
-    pdf_path = Path("./test/report/PYUSD.pdf") # [DEBUG] 테스트용 PDF 경로
-    result_table = analyze_pdf_local_llm(pdf_path, stablecoin="PYUSD")
-    plotit_asset_tables(stablecoin="PYUSD", asset_table=result_table)
-
-    pdf_path = Path("./test/report/TUSD.pdf") # [DEBUG] 테스트용 PDF 경로
-    result_table = analyze_pdf_local_llm(pdf_path, stablecoin="TUSD")
-    plotit_asset_tables(stablecoin="TUSD", asset_table=result_table)
-
-    pdf_path = Path("./test/report/USDP.pdf") # [DEBUG] 테스트용 PDF 경로
-    result_table = analyze_pdf_local_llm(pdf_path, stablecoin="USDP")
-    plotit_asset_tables(stablecoin="USDP", asset_table=result_table)

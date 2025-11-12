@@ -1,5 +1,5 @@
 # For getting onchain data from API
-from common.settings import api_keys, urls
+from common.settings import API_KEYS, URLS
 from coingecko_sdk import Coingecko
 from coingecko_sdk.types.onchain import CategoryGetResponse, CategoryGetPoolsResponse
 from typing import Dict, Any
@@ -12,20 +12,21 @@ class CoinInfo(BaseModel):
     symbol: str
     name: str
 
+async def get_onchain_data():
+    pass
+# # Coingecko client leverages httpx under the hood.
+# client = Coingecko(
+#     #pro_api_key = api_keys.COINGECKO_PRO_API_KEY, # pro is for paid API plans.
+#     demo_api_key = API_KEYS.COINGECKO,
+#     environment="demo",
+#     base_url = URLS.COINGECKO_DEMO_API_URL
+#     # timeout, max_retries, default_headers, default query, http_client can be set here as well.
+# )
 
-# Coingecko client leverages httpx under the hood.
-client = Coingecko(
-    #pro_api_key = api_keys.COINGECKO_PRO_API_KEY, # pro is for paid API plans.
-    demo_api_key = api_keys.COINGECKO_DEMO_API_KEY,
-    environment="demo",
-    base_url = urls.COINGECKO_DEMO_API_URL
-    # timeout, max_retries, default_headers, default query, http_client can be set here as well.
-)
-
-res = client.coins.get_id("usd-coin")
+# res = client.coins.get_id("usd-coin")
 
 
-print(res.detail_platforms)
+# print(res.detail_platforms)
 
 
 

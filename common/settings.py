@@ -1,15 +1,21 @@
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-import os
+import os, logging
 from dotenv import load_dotenv
 
 # [DEBUG] Development 환경에서는 .env 파일을 로드하도록 설정.
 load_dotenv(dotenv_path="./.env")
 
+logger = logging.getLogger("setting")
+logger.setLevel(logging.DEBUG)
+
 # 환경변수들은 Docker image에 주입됨.
 # 즉, .env 파일이 직접 image에 copy되지 않고, 이미지 빌드 시점에 환경변수로 주입됨.
 # BaseSettings는 주입된 환경변수를 자동으로 로드함.
 def parse_from_string_env(value: str, is_num: bool) -> list | dict:
+    if value is None:
+        logger.error(f"{value} not given. Config your env variables")
+        raise ValueError
     if value.startswith("[") and value.endswith("]"):
         result = []
         result = value[1:-1].replace('"',"").replace("'","").split(",")
@@ -17,6 +23,7 @@ def parse_from_string_env(value: str, is_num: bool) -> list | dict:
             result = [float(item.strip()) for item in result]
         else:
             result = [item.strip() for item in result] # sanitization
+        return result
     elif value.startswith("{") and value.endswith("}"):
         result = {}
         key_val_pair_list = value[1:-1].strip().split(",")
@@ -27,7 +34,8 @@ def parse_from_string_env(value: str, is_num: bool) -> list | dict:
             if is_num:
                 val = float(val)
             result[key] = val
-    return result
+        return result
+    
 
 class Available(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="AVAILABLE_", env_file= "../.env", env_file_encoding= "utf-8", extra="ignore") #[DEBUG] for development purpose
@@ -48,7 +56,7 @@ class Available(BaseSettings):
 class Thresholds(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="THRESHOLD_", env_file= "../.env", env_file_encoding= "utf-8", extra="ignore") #[DEBUG] for development purpose
     # model_config = SettingsConfigDict(env_prefix="THRESHOLDS_")
-    RCR: float
+    RRS: float
     RQS: float
     OHS: float
     TRS: list[float] | str
@@ -61,7 +69,7 @@ class Thresholds(BaseSettings):
 class OllamaSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="OLLAMA_", env_file= "../.env", env_file_encoding= "utf-8", extra="ignore") #[DEBUG] for development purpose
     MODELS: list[str] | str
-    API_URL: str
+    HOST: str
     MAX_ROWS_PER_TABLE: int  # Not directly used for ollama, but dependent to model capacity
 
     def post_process(self):

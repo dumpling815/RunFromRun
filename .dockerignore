@@ -1,0 +1,39 @@
+# OS / 편의
+.DS_Store
+.Trash
+.ipynb_checkpoints
+
+# VCS
+.git
+.gitignore
+*.md
+
+# Python / uv
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.uv/
+uv.lock.bak
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# 테스트/도구 캐시
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# 환경/로그/대용량
+.env
+.env.*
+logs/
+data/
+*.pdf
+*.zip
+node_modules/

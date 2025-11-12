@@ -149,7 +149,7 @@ class CoinData(BaseModel):
     stablecoin_ticker: str = Field(..., pattern="^[A-Z]{3,5}$", description="Stablecoin symbol (3-5 uppercase letters)")
     description: str | None
     asset_table: AssetTable
-    onchain: OnChainData
+    onchain_data: OnChainData
     evaluation_date: datetime
 
 class Index(BaseModel):
@@ -161,8 +161,8 @@ class Index(BaseModel):
         return self.value > self.threshold
 
 class Indices(BaseModel):
-    index_list: list[Literal['rcr', 'rqs', 'ohs', 'trs']] = ['rcr', 'rqs', 'ohs', 'trs']
-    rcr: Index
+    index_list: list[Literal['rrs', 'rqs', 'ohs', 'trs']] = ['rcr', 'rqs', 'ohs', 'trs']
+    rrs: Index
     rqs: Index
     ohs: Index
     trs: Index = None
@@ -196,7 +196,7 @@ class RfRRequest(BaseModel):
         
 class RfRResponse(BaseModel):
     id: str = Field(default_factory=lambda: datetime.utcnow().strftime('%Y%m%d%H%M%S%f'), description="Unique ID based on timestamp")
-    timestamp: datetime
+    evaluation_date: datetime
     stablecoin_symbol: str = Field(..., pattern="^[A-Z]{3,5}$", description="Stablecoin symbol (3-5 uppercase letters)")
     chain: str = Field(..., pattern="^[a-zA-Z0-9_ -]{3,20}$", description="Blockchain name (3-20 characters)")
     mcp_version: str = Field(..., pattern="^v\d+\.\d+\.\d+$", description="MCP version in semantic versioning format")
