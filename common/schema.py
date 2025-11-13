@@ -133,15 +133,16 @@ class AmountsOnly(BaseModel):
     total: Optional[float] = Field(..., ge=0)
 
     def to_asset_table(self, cusip_appearance: bool) -> AssetTable:
-        asset_table = AssetTable(total=self.total, cusip_appearance=cusip_appearance)
+        asset_table = AssetTable(cusip_appearance=cusip_appearance)
         sum = 0.0
-        for field_name, value in self.dict().items():
+        for field_name, value in self.model_dump().items():
             if field_name != "total" and value is not None:
                 sum += value
                 getattr(asset_table, field_name).amount = value
                 getattr(asset_table, field_name).ratio = (value / self.total) * 100 if self.total > 0 else 0
         asset_table.correction_value.amount = max(0.0, self.total - sum)
         asset_table.correction_value.ratio = (asset_table.correction_value.amount / self.total) * 100 if self.total > 0 else 0
+        asset_table.total.amount=self.total
         return asset_table
 
 class OnChainData(BaseModel):
