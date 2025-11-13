@@ -201,8 +201,8 @@ async def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
         except Exception as e:
             logger.error(f"LLM call failed for model {model} on PDF {pdf_path.name}: {e}")
             continue
-        delay_dict[f"{model} - latency"] = time.time() - model_start_time
-        logger.info(f"{model} latency: {delay_dict[f"{model} - latency"]:.4f} seconds.")
+        delay_dict[model] = time.time() - model_start_time
+        logger.info(f"{model} latency: {delay_dict[model]:.4f} seconds.")
         content = response.message.content.strip()
         if not content:
             logger.warning(f"Empty response from model {model}. Skipping.")
