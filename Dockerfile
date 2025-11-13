@@ -1,5 +1,3 @@
-# Build image by following command.
-# docker buildx build --env-file .env -t (your_repository):(tag) --push .
 FROM python:3.12-slim
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/

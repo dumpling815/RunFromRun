@@ -2,3 +2,5 @@
 .env
 # pycache directories
 __pycache__/
+
+rfr_dir/
