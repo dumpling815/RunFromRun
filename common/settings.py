@@ -1,7 +1,7 @@
-from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import os, logging
 from dotenv import load_dotenv
+from typing import Literal
 
 # [DEBUG] Development 환경에서는 .env 파일을 로드하도록 설정.
 load_dotenv(dotenv_path="./.env")
@@ -84,26 +84,21 @@ class APIKeys(BaseSettings):
     COINGECKO: str | None
     OPENFIGI: str | None
 
-class URLs(BaseSettings):
+class APIURLs(BaseSettings):
     model_config = SettingsConfigDict(env_file= "../.env", env_file_encoding= "utf-8", extra="ignore") #[DEBUG] for development purpose
-    USDC_CIRCLE_REPORT_URL: str | None
-    USDT_TETHER_REPORT_URL: str | None
-    FDUSD_FIRSTDIGITALLABS_REPORT_URL: str | None
-    PYUSD_PAYPAL_REPORT_URL: str | None
-    TUSD_TRUEUSD_REPORT_URL: str | None
-    USDP_PAXOS_REPORT_URL: str | None
     COINGECKO_PRO_API_URL: str | None
     COINGECKO_DEMO_API_URL: str | None
     OPENFIGI_MAPPING_API_URL: str | None
 
 
-CAMELOT_MODE:dict = parse_from_string_env(value=os.environ.get("CAMELOT_MODE"), is_num=False)
-
+# Instance Initiate
 AVAILABLE = Available().post_process()
 THRESHOLDS = Thresholds().post_process()
 OLLAMASETTINGS = OllamaSettings().post_process()   
 API_KEYS = APIKeys()
-URLS = URLs()
+API_URLS = APIURLs()
+CAMELOT_MODE:dict = parse_from_string_env(value=os.environ.get("CAMELOT_MODE"), is_num=False)
+LLM_OPTION:Literal["local","api"] = os.environ.get("LLM_OPTION")
 
 SYSTEM_PROMPT = """
     You are a **financial data extraction agent**. 
@@ -273,18 +268,3 @@ USER_PROMPT_TEMPLATE = """
 
     Here is the extracted dataframe: \n\n__tables__.
 """
-
-if __name__ == "__main__":
-    #[DEBUG] for checking loaded settings
-    print("CAMELOT_MODE:", CAMELOT_MODE)
-    print(type(CAMELOT_MODE))
-    print("OLLAMA:", OLLAMASETTINGS)
-    print(type(OLLAMASETTINGS))
-    print("AVAILABLE:", AVAILABLE)
-    print(type(AVAILABLE))
-    print("THRESHOLDS:", THRESHOLDS)
-    print(type(THRESHOLDS))
-    print("API_KEYS:", API_KEYS)
-    print(type(API_KEYS))
-    print("URLS:", URLS)
-    print(type(URLS))

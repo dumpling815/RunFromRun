@@ -1,8 +1,7 @@
-from common.schema import Indices, Index, RfRResponse, RfRRequest
+from common.schema import RfRResponse, RfRRequest
 from mcp.server.fastmcp import FastMCP
-from datetime import datetime
 from app.tools import analyze
-import asyncio, json, logging
+import logging
 
 # Initialize FastMCP server
 mcp = FastMCP("RfR Server")
@@ -28,28 +27,5 @@ def main():
     mcp.run()
     logger.info("Finished")
 
-
 if __name__ == "__main__":
     main()
-
-
-
-
-
-    # parameters={
-    #     "type": "object",
-    #     "properties": {
-    #         "symbol": {"type": "string", "description": "Coin symbol (ex: USDC, USDT)"},
-    #         "chain": {"type": "string", "description": "Blockchain name"},
-    #         "mcp_version": {"type": "string", "description": "MCP version (ex: v1.0.0)"},
-    #         "provenance": {
-    #             "type": "object",
-    #             "properties": {
-    #                 "reports_issuer": {"type": "string", "description": "Issuer of the report"},
-    #                 "reports_url": {"type": "string", "description": "URL of the report"},
-    #             },
-    #             "required": ["reports_issuer", "reports_url"],
-    #         },
-    #     },
-    #     "required": ["symbol", "chain", "mcp_version", "provenance"],
-    # },

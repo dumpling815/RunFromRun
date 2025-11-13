@@ -35,12 +35,16 @@ class AssetTable(BaseModel):
     # Total Amount
     total: Asset = Asset(tier=0, qls_score=0.0, amount=None, ratio=100)
 
+    # CUSIP이 공개되었는지 여부
+    cusip_appearance: bool = False
+
     # Pretty-printing helpers and __str__ override
     _FIELD_ORDER = [
         "cash_bank_deposits", "us_treasury_bills", "gov_mmf", "other_deposits",
         "repo_overnight_term", "non_us_treasury_bills", "us_treasury_other_notes_bonds",
         "corporate_bonds", "precious_metals", "digital_assets",
-        "secured_loans", "other_investments", "custodial_concentrated_asset", "correction_value"
+        "secured_loans", "other_investments", "custodial_concentrated_asset", 
+        "correction_value"
     ]
 
     @staticmethod
@@ -93,14 +97,17 @@ class AssetTable(BaseModel):
     
     def to_list(self) -> list[(str,Asset)]:
         """Return a list of all Asset objects in the AssetTable."""
-        return [(key,getattr(self,key)) for key in self.model_dump().keys()]
+        result = [(key,getattr(self,key)) for key in self._FIELD_ORDER]
+        result.append(('total',self.total))
+        return result
 
     def to_dict(self) -> dict[str,Asset]:
         """Return a list of all Asset objects in the AssetTable."""
-        res = {}
-        for key in self.mode_dump().keys():
-            res[key] = getattr(self,key)
-        return res
+        result = {}
+        for key in self._FIELD_ORDER:
+            result[key] = getattr(self,key)
+        result["total"] = self.total
+        return result
 
 # LLM 입력용 모델
 class AmountsOnly(BaseModel):
@@ -125,8 +132,8 @@ class AmountsOnly(BaseModel):
 
     total: Optional[float] = Field(..., ge=0)
 
-    def to_asset_table(self) -> AssetTable:
-        asset_table = AssetTable(total=self.total)
+    def to_asset_table(self, cusip_appearance: bool) -> AssetTable:
+        asset_table = AssetTable(total=self.total, cusip_appearance=cusip_appearance)
         sum = 0.0
         for field_name, value in self.dict().items():
             if field_name != "total" and value is not None:
@@ -198,6 +205,6 @@ class RfRResponse(BaseModel):
     stablecoin_ticker: str = Field(..., pattern=r"^[A-Z]{3,5}$", description="Stablecoin symbol (3-5 uppercase letters)")
     chain: str = Field(..., pattern=r"^[a-zA-Z0-9_ -]{3,20}$", description="Blockchain name (3-20 characters)")
     provenance: Provenance
-    
+
     risk_result: RiskResult | None
     mcp_version: str = Field(..., pattern=r"^v\d+\.\d+\.\d+$", description="MCP version in semantic versioning format")

@@ -2,7 +2,7 @@
 import pandas as pd
 import camelot, fitz, re # fitz for PyMuPDF
 from common.settings import CAMELOT_MODE, API_KEYS
-from data_pulling.apis import replace_cusip_openfigi
+from data_pulling.openfigi_api import replace_cusip_openfigi
 
 # PDF 분석 함수
 def get_pdf_style(pdf_path, sample_pages=3):

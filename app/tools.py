@@ -1,7 +1,7 @@
-from index_calculation import calculator
-from data_pulling.pdf_analysis import analyze_pdf_local_llm
+from common.schema import AssetTable, OnChainData, CoinData, Index, Indices, RiskResult, RfRRequest, RfRResponse
+from data_pulling.pdf_analysis import analyze_pdf
 from data_pulling.get_onchain import get_onchain_data
-from common.schema import Indices, Index, AssetTable, OnChainData, CoinData, RiskResult, RfRRequest, RfRResponse
+from index_calculation import calculator
 from datetime import datetime
 import asyncio, logging
 
@@ -9,7 +9,7 @@ logger = logging.getLogger("Tools")
 logger.setLevel(logging.DEBUG)
 
 async def _preprocess(pdf_path: str, stablecoin: str) -> CoinData:
-    asset_table: AssetTable = await analyze_pdf_local_llm(pdf_path=pdf_path,stablecoin=stablecoin)
+    asset_table: AssetTable = await analyze_pdf(pdf_path=pdf_path,stablecoin=stablecoin)
     onchain_data: OnChainData = await get_onchain_data()
     coin_data = CoinData(
         stablecoin_ticker=stablecoin, 

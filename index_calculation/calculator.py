@@ -18,6 +18,8 @@ def calculate_rqs(coin_data: CoinData) -> Index:
 def calculate_rrs(coin_data: CoinData) -> Index:
     logger.info("RQS Calculation Initialized")
     asset_list: list[(str,Asset)] = coin_data.asset_table.to_list()
+    # TODO
+    rrs = 1
     return Index(name="rrs", value=rrs, threshold=THRESHOLDS.RRS)
 
 def calculate_ohs(coin_data: CoinData) -> Index:

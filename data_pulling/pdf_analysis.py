@@ -1,12 +1,13 @@
-from common.settings import OLLAMASETTINGS, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
+from common.settings import OLLAMASETTINGS, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE, LLM_OPTION
 from common.schema import AssetTable, AmountsOnly, Asset
+from data_pulling.dataframe_process import get_tables_from_pdf
+from ollama import AsyncClient, ChatResponse, Options
 from typing import Optional
 import matplotlib.pyplot as plt
 import pandas as pd
-from data_pulling.dataframe_process import get_tables_from_pdf
 from  pathlib import Path
 import json, logging, time 
-from ollama import AsyncClient, ChatResponse, Options
+
 # ollama client의 경우 default로 os.getenv('OLLAMA)
 
 logger = logging.getLogger("pdf_analysis")
@@ -43,13 +44,19 @@ def jsonize_tables(tables: list[pd.DataFrame]) -> list[str]:
 
     return json_tables
 
+def cusip_check(tables: list[str]) -> bool:
+    for table in tables:
+        if "cusip" in table.lower():
+            return True
+    return False
+
 def complete_user_prompt(str_tables_list: list[str], template: str) -> str:
     tables_str = "\n\n".join(str_tables_list)
     user_prompt = template.replace("__tables__", tables_str).replace("_tablenum_", str(len(str_tables_list)))
     
     return user_prompt
 
-def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
+def llm_vote_amounts(amounts_list: list[AmountsOnly], cusip_appearance: bool) -> AssetTable:
     # 홀수 개의 모델의 응답을 받아 해당 자산별로 중간값(median) 산출
     # 기본적으로 명확하지 않은 value에 대해서는 보수적으로 접근하여 더 작은 값을 선택하도록 함.
     # 왜냐하면 더 작은 값을 선택하면 total을 맞추기 위해 correction_value가 더 커짐.
@@ -92,7 +99,7 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly]) -> AssetTable:
 
     # total이 표에서 추출 자체가 안되는 edge case 존재할 수 있기 때문에, total은 asset_sum과 비교하여 더 큰 값을 선택
     voted_assets["total"] = max(voted_assets["total"], asset_sum)
-    result:AssetTable =  AmountsOnly.model_validate(voted_assets).to_asset_table()
+    result:AssetTable =  AmountsOnly.model_validate(voted_assets).to_asset_table(cusip_appearance=cusip_appearance)
 
     return result
 
@@ -136,7 +143,7 @@ def plotit_delay(stablecoin: str,delay_tup_list: list[(str,float)], model_nums: 
     plt.savefig(f'{stablecoin}_pdf_analysis_delay.png')
 
 # Main PDF 분석 함수
-def analyze_pdf_api_call(pdf_path: Path, stablecoin: str) -> AssetTable:
+async def analyze_pdf_api_call(pdf_path: Path, stablecoin: str) -> AssetTable:
     raise NotImplementedError("API call method is not implemented yet.")
 
 async def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
@@ -160,7 +167,8 @@ async def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
         raise RuntimeError(f"Dataframe to Markdown(or JSON) conversion failed for {pdf_path.name}") from e
     logger.debug(f"Converted tables to Markdown(or JSON) format for LLM input.")
 
-    # ============== 3. OPENFIGI를 이용하여 CUSIP 자산 번호를 자산 명으로 변환 ==============
+    # ============== 3. Table에 CUSIP 포함되어 있는지 확인 ==============
+    cusip_appearance = cusip_check(markdown_tables_list)
 
     # ============== 4. User Prompt에 string으로 변환된 표 주입 ==============
     #user_prompt = complete_user_prompt(json_tables_str, USER_PROMPT_TEMPLATE)
@@ -213,7 +221,7 @@ async def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     # ============== 7. LLM 응답 결과로 최종 결과물 산출 (voting) ==============
     voting_time_start = time.time()
     try:
-        asset_table = llm_vote_amounts(amounts_only_list)
+        asset_table: AssetTable = llm_vote_amounts(amounts_only_list=amounts_only_list,cusip_appearance=cusip_appearance)
     except Exception as e:
         logger.error(f"Error during LLM voting for PDF {pdf_path.name}: {e}")
         raise RuntimeError(f"LLM voting failed for {pdf_path.name}") from e
@@ -232,3 +240,9 @@ async def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     plotit_delay(stablecoin, delay_list, len(OLLAMASETTINGS.MODELS))
 
     return asset_table
+
+async def analyze_pdf(pdf_path: Path, stablecoin: str) -> AssetTable:
+    if LLM_OPTION == "local":
+        return await analyze_pdf_local_llm(pdf_path=pdf_path, stablecoin=stablecoin)
+    else: # LLM_OPTION == "api"
+        return await analyze_pdf_api_call(pdf_path=pdf_path, stablecoin=stablecoin)
