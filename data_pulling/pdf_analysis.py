@@ -178,7 +178,7 @@ async def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
 
 
     # ============== 5. LLM 호출 및 응답 수집 ==============
-    amounts_only_list: list[AmountsOnly] = []
+    amounts_list: list[AmountsOnly] = []
     try:
         ollama_client = AsyncClient(host=OLLAMASETTINGS.HOST)
     except Exception as e:
@@ -216,12 +216,12 @@ async def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
             logger.debug(f"Raw response content:\n{content}")
             continue
         logger.info(f"\n=== From {model} ===\n{response.message.content}")
-        amounts_only_list.append(amounts_only)
+        amounts_list.append(amounts_only)
     
     # ============== 7. LLM 응답 결과로 최종 결과물 산출 (voting) ==============
     voting_time_start = time.time()
     try:
-        asset_table: AssetTable = llm_vote_amounts(amounts_only_list=amounts_only_list,cusip_appearance=cusip_appearance)
+        asset_table: AssetTable = llm_vote_amounts(amounts_list=amounts_list,cusip_appearance=cusip_appearance)
     except Exception as e:
         logger.error(f"Error during LLM voting for PDF {pdf_path.name}: {e}")
         raise RuntimeError(f"LLM voting failed for {pdf_path.name}") from e

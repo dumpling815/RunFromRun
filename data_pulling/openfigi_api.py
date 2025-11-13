@@ -1,6 +1,5 @@
-import os, json, re
+import json, re
 import urllib.request
-import urllib.parse
 
 from common.settings import API_KEYS, API_URLS
 

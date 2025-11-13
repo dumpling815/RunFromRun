@@ -210,7 +210,7 @@ SYSTEM_PROMPT = """
     5) **Validate Before Emitting JSON**
     - Ensure every schema key exists and is an object with the required fields.
     - Ensure numeric fields are numbers (**not strings neither sub-json**).
-    - Compute `total_amount` as the **sum** of all `amount` fields you filled (even when some are 0).
+    - Compute `total` as the **sum** of all `amount` fields you filled (even when some are 0).
 
     6) **Output Format**
     - Output: **ONLY** one JSON object that matches the given schema exactly.
@@ -231,7 +231,7 @@ SYSTEM_PROMPT = """
         "secured_loans": <your_INTEGER_value>,
         "other_investments": <your_INTEGER_value>,
         "custodial_concentrated_asset": <your_INTEGER_value>,
-        "total_amount": <your_INTEGER_value>
+        "total": <your_INTEGER_value>
     }
     - NO EXPLANATIONS, NO COMMENTS, NO PROSE OUTSIDE OF JSON.
     - ** DO NOT FIX THE STRUCTURE OF FORMAT. PUTTING SUB-JSON FORMAT IN YOUR PLACE IS NOT ALLOWED**
@@ -262,7 +262,7 @@ USER_PROMPT_TEMPLATE = """
         "secured_loans": <your_INTEGER_value>,
         "other_investments": <your_INTEGER_value>,
         "custodial_concentrated_asset": <your_INTEGER_value>,
-        "total_amount": <your_INTEGER_value>
+        "total": <your_INTEGER_value>
     }
 
 
