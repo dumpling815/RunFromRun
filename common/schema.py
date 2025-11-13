@@ -145,6 +145,7 @@ class AmountsOnly(BaseModel):
         return asset_table
 
 class OnChainData(BaseModel):
+    outstanding_token: int = Field(..., ge=0)
     CEX_flow_in: float = Field(..., ge=0)
     CEX_flow_out: float = Field(..., ge=0)
     liquidity_pool_size: float = Field(..., ge=0) # liquidity pool depth
