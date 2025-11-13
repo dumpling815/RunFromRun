@@ -20,4 +20,4 @@ RUN uv sync --locked
 
 COPY . .
 
-CMD ["uv", "run", "-m", "app.rfr_server"]
+CMD ["uv", "run", "-m", "app.rfr_server","--port","8000"]

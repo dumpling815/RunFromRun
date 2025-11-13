@@ -15,7 +15,7 @@ logger.setLevel(logging.DEBUG)
 def parse_from_string_env(value: str, is_num: bool) -> list | dict:
     if value is None:
         logger.error(f"{value} not given. Config your env variables")
-        raise ValueError
+        return None
     if value.startswith("[") and value.endswith("]"):
         result = []
         result = value[1:-1].replace('"',"").replace("'","").split(",")

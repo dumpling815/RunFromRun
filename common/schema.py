@@ -167,23 +167,22 @@ class Indices(BaseModel):
     ohs: Index
     trs: Index = None
 
+class RiskResult(BaseModel):
+    indices: Indices
+    coin_data: CoinData
+    analysis: str
+
+class Provenance(BaseModel):
+        reports_issuer: str = Field(..., pattern=r"^[\w -]{3,50}$", description="Issuer of the report (3-50 characters)")
+        reports_pdf_url: str = Field(..., pattern=r"^https?://[^\s/$.?#].[^\s]*$", description="URL of the report pdf")
+
 class RfRRequest(BaseModel):
-    stablecoin_ticker: str = Field(..., pattern="^[A-Z]{3,5}$", description="Stablecoin symbol (3-5 uppercase letters)")
-    chain: str = Field(..., pattern="^[a-zA-Z0-9_ -]{3,20}$", description="Blockchain name (3-20 characters)")
+    stablecoin_ticker: str = Field(..., pattern=r"^[A-Z]{3,5}$", description="Stablecoin symbol (3-5 uppercase letters)")
+    chain: str = Field(..., pattern=r"^[\w -]{3,20}$", description="The name of the chain on which the stable coin was issued (3-20 characters)")
+    provenance: Provenance
 
     # mcp_version의 경우, 처음 도커 컨테이너 이미지 빌드 시점에 사용되고, 이후 서버 내부에서는 디버깅 용도로만 사용될 예정.
-    mcp_version: str = Field(..., pattern="^v\d+\.\d+\.\d+$", description="MCP version in semantic versioning format")
-    class Provenanve(BaseModel):
-        reports_issuer: str = Field(..., pattern="^[a-zA-Z0-9_ -]{3,50}$", description="Issuer of the report (3-50 characters)")
-        reports_url: str = Field(..., pattern="^https?://[^\s/$.?#].[^\s]*$", description="URL of the report")
-    provenance: Provenanve
-
-    def _check_url_format(self, url: str) -> bool:
-        # Basic URL format validation, file existence is checked during data preprocessing
-        import re
-        PDF_URL_PATTERN = re.compile(r"^https?:\/\/[^\s]+\.pdf(?:\?.*)?$", re.IGNORECASE)
-        if bool(PDF_URL_PATTERN.match(url)) is False:
-            raise ValueError(f"Invalid URL format: {url}")
+    mcp_version: str = Field(..., pattern=r"^v\d+\.\d+\.\d+$", description="MCP version in semantic versioning format")
 
     def validate(self):
         # Check if the request data is avilable and valid
@@ -191,15 +190,14 @@ class RfRRequest(BaseModel):
             raise ValueError(f"Unsupported stablecoin symbol: {self.stablecoin_ticker}. Supported symbols: {AVAILABLE.COINS}")
         if self.chain not in AVAILABLE.CHAINS:
             raise ValueError(f"Unsupported chain: {self.chain}. Supported chains: {AVAILABLE.CHAINS}")
-        if self._check_url_format(self.provenance.reports_url) is False:
-            raise ValueError(f"Invalid URL Format: {self.provenance.reports_url}\nIt should start with https://")
         
 class RfRResponse(BaseModel):
-    id: str = Field(default_factory=lambda: datetime.utcnow().strftime('%Y%m%d%H%M%S%f'), description="Unique ID based on timestamp")
-    evaluation_date: datetime
-    stablecoin_symbol: str = Field(..., pattern="^[A-Z]{3,5}$", description="Stablecoin symbol (3-5 uppercase letters)")
-    chain: str = Field(..., pattern="^[a-zA-Z0-9_ -]{3,20}$", description="Blockchain name (3-20 characters)")
-    mcp_version: str = Field(..., pattern="^v\d+\.\d+\.\d+$", description="MCP version in semantic versioning format")
-    class Provenanve(BaseModel):
-        reports_issuer: str = Field(..., pattern="^[a-zA-Z0-9_ -]{3,50}$", description="Issuer of the report (3-50 characters)")
-        reports_url: str = Field(..., pattern="^https?://[^\s/$.?#].[^\s]*$", description="URL of the report")
+    id: str = Field(default_factory=lambda: datetime.now().strftime('%Y%m%d%H%M%S%f'), description="Unique ID based on timestamp")
+    evaluation_time: datetime
+
+    stablecoin_ticker: str = Field(..., pattern=r"^[A-Z]{3,5}$", description="Stablecoin symbol (3-5 uppercase letters)")
+    chain: str = Field(..., pattern=r"^[a-zA-Z0-9_ -]{3,20}$", description="Blockchain name (3-20 characters)")
+    provenance: Provenance
+    
+    risk_result: RiskResult | None
+    mcp_version: str = Field(..., pattern=r"^v\d+\.\d+\.\d+$", description="MCP version in semantic versioning format")

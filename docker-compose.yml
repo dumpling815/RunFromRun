@@ -2,41 +2,16 @@ version: '3.8'
 services:
   # RfR MCP Server 서비스 정의 (Risk Analysis Engine)
   rfr_mcp_server:
-    # 현재 디렉토리(.)에 있는 Dockerfile 사용하여 이미지 빌드.
-    build:
-      context: .
-      dockerfile: Dockerfile      
-    
+    image: "minuk0815/sentinelx:0.0.24" # 버전 태그가 맞는지 반드시 확인
+    hostname: 0.0.0.0
     ports:
       - "8000:8000"
     
-    environment:
-      # 서버 내부 포트
-      - MCP_SERVER_PORT=8000
-      # DB 접속 정보 (DB 서비스 이름 'rfr_db'는 내부 네트워크 DNS로 사용됨)
-      # - DB_HOST=rfr_db
-      # - DB_USER=rfr_user
-      # - DB_PASSWORD=rfr_password
-      # - DB_NAME=rfr_db
-    
-    # 서버가 시작되기 전에 데이터베이스가 준비되도록 종속성 지정.
-    # depends_on:
-    #   - rfr_db
+    env_file:
+      - .env
 
     # 컨테이너 종료 시 자동 재시작
     restart: always
-
-    # 개발 및 디버깅 편의를 위해 소스 코드를 마운트 (optional)
-    # volumes:
-    #   - ./:/app
-  
-  # 데이터베이스 서비스 정의 => 향후 추가 예정.
-  # rfr_db:
-    # TimescaleDB 이미지 사용하여 시계열 데이터 저장 기능 확보
-    # image: timescale/timescaledb:latest-pg14
-
-    # DB 접속 관련 환경 변수 설정 (rfr_mc)
-
 
 networks:
   mcp-network:

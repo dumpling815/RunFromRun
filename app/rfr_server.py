@@ -1,40 +1,36 @@
 from common.schema import Indices, Index, RfRResponse, RfRRequest
 from mcp.server.fastmcp import FastMCP
 from datetime import datetime
-from app.tools import analyze_risk
+from app.tools import analyze
 import asyncio, json, logging
 
 # Initialize FastMCP server
-rfr_server = FastMCP("RfR Server")
+mcp = FastMCP("RfR Server")
 
 logger = logging.getLogger("RFR SERVER")
 logger.setLevel(logging.DEBUG)
 
-@rfr_server.tool(
-    name="analyze_stablecoin_risk",
-    description="Analyze the risk of a stablecoin based on its reserve report.",
-    # structured_output=True
+@mcp.tool(
+        name="RunFromRun-MCP-SERVER",
+        description="Analyze Stable Coin Risk with given Report PDF."
 )
-def analyze(request: dict) -> dict:
-    request = RfRRequest(**request)
+def analyze_stablecoin_risk(request: RfRRequest) -> dict:
     try:
         request.validate()
     except ValueError as e:
         logger.error(f"Validation error: {e}")
         return {"error": str(e)}
-    try:
-        response: RfRResponse = analyze_risk(request)
-    except Exception as e:
-        logger.error(f"Error during risk analysis: {e}")
-        response = RfRResponse()
-        return response
+    response: RfRResponse = analyze(request)
     return response
 
+def main():
+    logger.info("RfR Server Initiating...")
+    mcp.run()
+    logger.info("Finished")
+
+
 if __name__ == "__main__":
-    logger.info("RfR Server Initiated")
-    if input("Hi: ") == "hi":
-        print("Your welcome")
-    #rfr_server.run(transport="stdio") # TODO -> Docker 활용 시 transport 계층 수정 필요할 수 있음.
+    main()
 
 
 
