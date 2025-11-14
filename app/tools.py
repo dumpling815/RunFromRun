@@ -10,7 +10,7 @@ logger = logging.getLogger("Tools")
 logger.setLevel(logging.DEBUG)
 
 async def _preprocess(id:str, report_pdf_url: str, stablecoin: str) -> CoinData:
-    asset_table: AssetTable = await analyze_pdf(id=id, report_pdf_url=report_pdf_url, stablecoin=stablecoin)
+    asset_table: AssetTable = await analyze_pdf(id=id, report_pdf_url=report_pdf_url, stablecoin=stablecoin) # 로그 기록을 위해 id 필요
     onchain_data: OnChainData = await get_onchain_data()
     coin_data = CoinData(
         stablecoin_ticker=stablecoin, 
