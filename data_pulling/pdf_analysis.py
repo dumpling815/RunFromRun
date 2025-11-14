@@ -244,7 +244,12 @@ async def analyze_pdf_local_llm(pdf_hash: str, pdf_path: Path, stablecoin: str) 
 
 async def analyze_pdf(id: str, report_pdf_url: Path, stablecoin: str) -> AssetTable:
     pdf_hash, pdf_path = download_and_hash_pdf(report_pdf_url=report_pdf_url, stablecoin=stablecoin)
-    if not search_log(pdf_hash=pdf_hash): # 이전에 분석한 적이 없는 pdf의 경우
+    try:
+        cached: bool = search_log(pdf_hash=pdf_hash)
+    except FileNotFoundError as e:
+        logger.error(f"Something gone wrong while searching cache directory: {e}")
+        cached = False
+    if not cached: # 이전에 분석한 적이 없는 pdf의 경우
         if LLM_OPTION == "local":
             asset_table = await analyze_pdf_local_llm(pdf_hash=pdf_hash,pdf_path=pdf_path, stablecoin=stablecoin)
         else: # LLM_OPTION == "api"
@@ -252,4 +257,13 @@ async def analyze_pdf(id: str, report_pdf_url: Path, stablecoin: str) -> AssetTa
         cache_result(id=id,pdf_hash=pdf_hash,asset_table=asset_table)
         return asset_table
     else: # log에 이미 분석한 적이 있다는 기록이 있는 경우. 새로운 id여도 로그 크기의 폭발적 증가를 막기 위해 새로 기록하지는 않음
-        return get_AssetTable_from_cache(pdf_hash=pdf_hash)
+        try:
+            asset_table = get_AssetTable_from_cache(pdf_hash=pdf_hash)
+        except FileNotFoundError as e:
+            logger.error(f"There is not cached file. {e}")
+            if LLM_OPTION == "local":
+                asset_table = await analyze_pdf_local_llm(pdf_hash=pdf_hash,pdf_path=pdf_path, stablecoin=stablecoin)
+            else: # LLM_OPTION == "api"
+                asset_table = await analyze_pdf_api_call(pdf_hash=pdf_hash,pdf_path=pdf_path, stablecoin=stablecoin)
+            cache_result(id=id,pdf_hash=pdf_hash,asset_table=asset_table)
+        return asset_table
