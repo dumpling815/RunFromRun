@@ -13,12 +13,19 @@ logger.setLevel(logging.DEBUG)
         name="RunFromRun-MCP-SERVER",
         description="Analyze Stable Coin Risk with given Report PDF."
 )
-def analyze_stablecoin_risk(request: RfRRequest) -> dict:
+def analyze_stablecoin_risk(request: RfRRequest) -> RfRResponse:
     try:
         request.validate()
     except ValueError as e:
         logger.error(f"Validation error: {e}")
-        return {"error": str(e)}
+        return RfRResponse(
+            id="Request validation error", 
+            err_status=e, 
+            stablecoin_ticker=request.stablecoin_ticker, 
+            chain=request.chain, 
+            provenance=request.provenance, 
+            mcp_version=request.mcp_version
+        )
     response: RfRResponse = analyze(request)
     return response
 

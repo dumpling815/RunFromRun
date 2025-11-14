@@ -46,12 +46,11 @@ def analyze(request: RfRRequest) -> RfRResponse:
     except Exception as e:
         logger.error(f"Error during analyzing {e}")
         return RfRResponse(
-            id=id,
-            evaluation_time=datetime.now(),
+            id="MCP Server Error",
+            err_status=e,
             stablecoin_ticker = request.stablecoin_ticker,
             chain = request.chain,
             provenance=request.provenance,
-            risk_result=None,
             mcp_version=request.mcp_version,
         )
     return RfRResponse(

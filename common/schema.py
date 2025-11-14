@@ -201,11 +201,12 @@ class RfRRequest(BaseModel):
         
 class RfRResponse(BaseModel):
     id: str
-    evaluation_time: datetime
+    err_status: Optional[str]
+    evaluation_time: datetime = datetime.now()
 
     stablecoin_ticker: str = Field(..., pattern=r"^[A-Z]{3,5}$", description="Stablecoin symbol (3-5 uppercase letters)")
     chain: str = Field(..., pattern=r"^[a-zA-Z0-9_ -]{3,20}$", description="Blockchain name (3-20 characters)")
     provenance: Provenance
 
-    risk_result: RiskResult | None
+    risk_result: RiskResult | None = None
     mcp_version: str = Field(..., pattern=r"^v\d+\.\d+\.\d+$", description="MCP version in semantic versioning format")

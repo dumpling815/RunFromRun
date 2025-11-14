@@ -27,6 +27,7 @@ def calculate_FRRS(coin_data: CoinData) -> Index:
     return Index(name="FRRS", value=FRRS, threshold=THRESHOLDS.FRRS)
 
 def calculate_OHS(coin_data: CoinData) -> Index:
+    # TODO: Implement this.
     pass
     # return Index(name="ohs", value=ohs, threshold=THRESHOLDS.OHS)
 
