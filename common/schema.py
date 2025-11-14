@@ -160,7 +160,6 @@ class CoinData(BaseModel):
     description: str | None = None
     asset_table: AssetTable
     onchain_data: OnChainData
-    evaluation_date: datetime
 
 class Index(BaseModel):
     name : str = Field(..., pattern="^[a-z]*$", min_length=3, max_length=3)

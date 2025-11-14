@@ -16,7 +16,6 @@ async def _preprocess(id:str, report_pdf_url: str, stablecoin: str) -> CoinData:
         stablecoin_ticker=stablecoin, 
         asset_table=asset_table, 
         onchain_data=onchain_data,  
-        evaluation_date=datetime.now()
     )
     return coin_data
 
@@ -27,7 +26,7 @@ def _calculate_indices(coin_data: CoinData) -> Indices:
     result_indices: Indices = calculator.calculate_TRS(FRRS=FRRS_index,OHS=OHS_index)
     return result_indices
 
-def _final_conclusion(coin_data: CoinData, indices: Indices):
+def _alarm_and_complete(coin_data: CoinData, indices: Indices):
     # TODO analysis 문장 완성
     # TODO alarming 구현
     risk_result = RiskResult(
@@ -39,11 +38,11 @@ def _final_conclusion(coin_data: CoinData, indices: Indices):
 
 def analyze(request: RfRRequest) -> RfRResponse:
     # 메인 프로세스: 지수 계산, 임계값 확인, 총 위험 점수 계산 및 응답 반환
-    id = uuid4().hex
+    id:str = uuid4().hex
     try:
         coin_data: CoinData = asyncio.run(_preprocess(id=id, report_pdf_url=request.provenance.report_pdf_url, stablecoin=request.stablecoin_ticker))
         indices: Indices =_calculate_indices(coin_data=coin_data)
-        risk_result: RiskResult = _final_conclusion(coin_data=coin_data,indices=indices)
+        risk_result: RiskResult = _alarm_and_complete(coin_data=coin_data,indices=indices)
     except Exception as e:
         logger.error(f"Error during analyzing {e}")
         return RfRResponse(
