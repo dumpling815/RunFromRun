@@ -43,6 +43,8 @@ def download_and_hash_pdf(report_pdf_url: str, stablecoin: str) -> tuple[str,Pat
 
 def cache_result(id:str, pdf_hash:str, asset_table:AssetTable):
     # Log file에 hash-id 기록
+    # 현재 구현으로는 id는 필요 없으나, 이후 구현을 고려하여 id도 추가
+    # 예를 들어, 이후 데이터 양이 많아져 DB 도입하는 경우 id 필요할 가능성 높아짐
     log_file:Path = MOUNTED_DIR / "pdfHash_id.log"
     log_line: str = pdf_hash + "_" + id + "\n"
     with open(log_file, "a", encoding="utf-8") as f:
