@@ -1,5 +1,6 @@
 from common.settings import OLLAMASETTINGS, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE, LLM_OPTION
 from common.schema import AssetTable, AmountsOnly, Asset
+from data_pulling.pdf_fetch_caching import download_and_hash_pdf, search_log, get_AssetTable_from_cache, cache_result
 from data_pulling.dataframe_process import get_tables_from_pdf
 from ollama import AsyncClient, ChatResponse, Options
 from typing import Optional
@@ -56,7 +57,7 @@ def complete_user_prompt(str_tables_list: list[str], template: str) -> str:
     
     return user_prompt
 
-def llm_vote_amounts(amounts_list: list[AmountsOnly], cusip_appearance: bool) -> AssetTable:
+def llm_vote_amounts(amounts_list: list[AmountsOnly], cusip_appearance: bool, pdf_hash: str) -> AssetTable:
     # 홀수 개의 모델의 응답을 받아 해당 자산별로 중간값(median) 산출
     # 기본적으로 명확하지 않은 value에 대해서는 보수적으로 접근하여 더 작은 값을 선택하도록 함.
     # 왜냐하면 더 작은 값을 선택하면 total을 맞추기 위해 correction_value가 더 커짐.
@@ -64,7 +65,7 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly], cusip_appearance: bool) ->
     # 모델이 None으로 응답한 것과, 0.0으로 응답한 것은 구별되어야 함.
     # 0.0은 해당 자산이 없다는 의미이나, None은 모델이 해당 자산에 대해 판단하지 못했다는 의미이기 때문.
     if amounts_list is None or len(amounts_list) == 0:
-        return AssetTable()
+        raise RuntimeError("LLM did not return any valid AmountsOnly responses")
     ASSET_NAMES = [
         "cash_bank_deposits", "us_treasury_bills", "gov_mmf", "other_deposits",
         "repo_overnight_term", "non_us_treasury_bills", "us_treasury_other_notes_bonds",
@@ -99,7 +100,7 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly], cusip_appearance: bool) ->
 
     # total이 표에서 추출 자체가 안되는 edge case 존재할 수 있기 때문에, total은 asset_sum과 비교하여 더 큰 값을 선택
     voted_assets["total"] = max(voted_assets["total"], asset_sum)
-    result:AssetTable =  AmountsOnly.model_validate(voted_assets).to_asset_table(cusip_appearance=cusip_appearance)
+    result:AssetTable =  AmountsOnly.model_validate(voted_assets).to_asset_table(cusip_appearance=cusip_appearance, pdf_hash=pdf_hash)
 
     return result
 
@@ -146,7 +147,7 @@ def plotit_delay(stablecoin: str,delay_tup_list: list[(str,float)], model_nums: 
 async def analyze_pdf_api_call(pdf_path: Path, stablecoin: str) -> AssetTable:
     raise NotImplementedError("API call method is not implemented yet.")
 
-async def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
+async def analyze_pdf_local_llm(pdf_hash: str, pdf_path: Path, stablecoin: str) -> AssetTable:
     # ============== 1. PDF에서 데이터프레임 추출 ==============
     delay_dict: dict[str,float] = {}
     e2e_start_time = time.time()
@@ -221,7 +222,7 @@ async def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
     # ============== 7. LLM 응답 결과로 최종 결과물 산출 (voting) ==============
     voting_time_start = time.time()
     try:
-        asset_table: AssetTable = llm_vote_amounts(amounts_list=amounts_list,cusip_appearance=cusip_appearance)
+        asset_table: AssetTable = llm_vote_amounts(amounts_list=amounts_list,cusip_appearance=cusip_appearance,pdf_hash=pdf_hash)
     except Exception as e:
         logger.error(f"Error during LLM voting for PDF {pdf_path.name}: {e}")
         raise RuntimeError(f"LLM voting failed for {pdf_path.name}") from e
@@ -241,8 +242,14 @@ async def analyze_pdf_local_llm(pdf_path: Path, stablecoin: str) -> AssetTable:
 
     return asset_table
 
-async def analyze_pdf(pdf_path: Path, stablecoin: str) -> AssetTable:
-    if LLM_OPTION == "local":
-        return await analyze_pdf_local_llm(pdf_path=pdf_path, stablecoin=stablecoin)
-    else: # LLM_OPTION == "api"
-        return await analyze_pdf_api_call(pdf_path=pdf_path, stablecoin=stablecoin)
+async def analyze_pdf(id: str, report_pdf_url: Path, stablecoin: str) -> AssetTable:
+    pdf_hash, pdf_path = download_and_hash_pdf(report_pdf_url=report_pdf_url, stablecoin=stablecoin)
+    if not search_log(pdf_hash=pdf_hash): # 이전에 분석한 적이 없는 pdf의 경우
+        if LLM_OPTION == "local":
+            asset_table = await analyze_pdf_local_llm(pdf_hash=pdf_hash,pdf_path=pdf_path, stablecoin=stablecoin)
+        else: # LLM_OPTION == "api"
+            asset_table = await analyze_pdf_api_call(pdf_hash=pdf_hash,pdf_path=pdf_path, stablecoin=stablecoin)
+        cache_result(id=id,pdf_hash=pdf_hash,asset_table=asset_table)
+        return asset_table
+    else: # log에 이미 분석한 적이 있다는 기록이 있는 경우. 새로운 id여도 로그 크기의 폭발적 증가를 막기 위해 새로 기록하지는 않음
+        return get_AssetTable_from_cache(pdf_hash=pdf_hash)

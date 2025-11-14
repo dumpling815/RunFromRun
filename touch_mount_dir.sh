@@ -1,8 +1,7 @@
 #!/bin/sh
 
 cd $HOME
-mkdir rfr_mount
-cd ./rfr_mount
-mkdir pdfs
-mkdir results
-cd pdfs
+mkdir rfr_pdf_results
+cd ./rfr_pdf_results
+mkdir asset_tables
+touch pdfHash_id.log

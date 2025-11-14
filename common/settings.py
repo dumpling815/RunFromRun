@@ -2,6 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 import os, logging
 from dotenv import load_dotenv
 from typing import Literal
+from pathlib import Path
 
 # [DEBUG] Development 환경에서는 .env 파일을 로드하도록 설정.
 load_dotenv(dotenv_path="./.env")
@@ -99,6 +100,7 @@ API_KEYS = APIKeys()
 API_URLS = APIURLs()
 CAMELOT_MODE:dict = parse_from_string_env(value=os.environ.get("CAMELOT_MODE"), is_num=False)
 LLM_OPTION:Literal["local","api"] = os.environ.get("LLM_OPTION")
+MOUNTED_DIR:Path = Path(os.environ.get("MOUNTED_DIR"))
 
 SYSTEM_PROMPT = """
     You are a **financial data extraction agent**. 

@@ -2,7 +2,6 @@ from pydantic import BaseModel, Field
 from typing import Literal, Optional
 from datetime import datetime
 from common.settings import AVAILABLE
-# from uuid import uuid4 # timestamp가 아닌 unique id가 필요한가? -> 만일 DB에 저장한다면 필요할 수 있음.
 
 class Asset(BaseModel):
     tier: Literal[0, 1, 2, 3, 4, 5] = Field(..., frozen=True) # 0 is for total amount
@@ -37,6 +36,8 @@ class AssetTable(BaseModel):
 
     # CUSIP이 공개되었는지 여부
     cusip_appearance: bool = False
+    # PDF hash : 분석한 pdf의 hash 결과
+    pdf_hash: str = Field(..., description="Downloaded PDF file hash (e.g., sha256). Same hash => same report.")
 
     # Pretty-printing helpers and __str__ override
     _FIELD_ORDER = [
@@ -130,17 +131,17 @@ class AmountsOnly(BaseModel):
 
     # correction value는 LLM 응답 후 계산되므로 입력 모델에는 포함하지 않음.
 
-    total: Optional[float] = Field(..., ge=0)
+    total: float = Field(..., ge=0)
 
-    def to_asset_table(self, cusip_appearance: bool) -> AssetTable:
-        asset_table = AssetTable(cusip_appearance=cusip_appearance)
-        sum = 0.0
+    def to_asset_table(self, cusip_appearance: bool, pdf_hash: str) -> AssetTable:
+        asset_table = AssetTable(cusip_appearance=cusip_appearance, pdf_hash=pdf_hash)
+        cumulative = 0.0
         for field_name, value in self.model_dump().items():
             if field_name != "total" and value is not None:
-                sum += value
+                cumulative += value
                 getattr(asset_table, field_name).amount = value
                 getattr(asset_table, field_name).ratio = (value / self.total) * 100 if self.total > 0 else 0
-        asset_table.correction_value.amount = max(0.0, self.total - sum)
+        asset_table.correction_value.amount = max(0.0, self.total - cumulative)
         asset_table.correction_value.ratio = (asset_table.correction_value.amount / self.total) * 100 if self.total > 0 else 0
         asset_table.total.amount=self.total
         return asset_table
@@ -156,7 +157,7 @@ class OnChainData(BaseModel):
     
 class CoinData(BaseModel):
     stablecoin_ticker: str = Field(..., pattern="^[A-Z]{3,5}$", description="Stablecoin symbol (3-5 uppercase letters)")
-    description: str | None
+    description: str | None = None
     asset_table: AssetTable
     onchain_data: OnChainData
     evaluation_date: datetime
@@ -170,20 +171,20 @@ class Index(BaseModel):
         return self.value > self.threshold
 
 class Indices(BaseModel):
-    index_list: list[Literal['rrs', 'rqs', 'ohs', 'trs']] = ['rcr', 'rqs', 'ohs', 'trs']
+    index_list: list[Literal['rrs', 'rqs', 'ohs', 'trs']] = ['rrs', 'rqs', 'ohs', 'trs']
     rrs: Index
     rqs: Index
     ohs: Index
-    trs: Index = None
+    trs: Index
 
 class RiskResult(BaseModel):
-    indices: Indices
     coin_data: CoinData
+    indices: Indices
     analysis: str
 
 class Provenance(BaseModel):
-        reports_issuer: str = Field(..., pattern=r"^[\w -]{3,50}$", description="Issuer of the report (3-50 characters)")
-        reports_pdf_url: str = Field(..., pattern=r"^https?://[^\s/$.?#].[^\s]*$", description="URL of the report pdf")
+        report_issuer: str = Field(..., pattern=r"^[\w -]{3,50}$", description="Issuer of the report (3-50 characters)")
+        report_pdf_url: str = Field(..., pattern=r"^https?://[^\s/$.?#].[^\s]*$", description="URL of the report pdf")
 
 class RfRRequest(BaseModel):
     stablecoin_ticker: str = Field(..., pattern=r"^[A-Z]{3,5}$", description="Stablecoin symbol (3-5 uppercase letters)")
@@ -201,7 +202,7 @@ class RfRRequest(BaseModel):
             raise ValueError(f"Unsupported chain: {self.chain}. Supported chains: {AVAILABLE.CHAINS}")
         
 class RfRResponse(BaseModel):
-    id: str = Field(default_factory=lambda: datetime.now().strftime('%Y%m%d%H%M%S%f'), description="Unique ID based on timestamp")
+    id: str
     evaluation_time: datetime
 
     stablecoin_ticker: str = Field(..., pattern=r"^[A-Z]{3,5}$", description="Stablecoin symbol (3-5 uppercase letters)")

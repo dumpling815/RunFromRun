@@ -4,12 +4,16 @@ from data_pulling.get_onchain import get_onchain_data
 from index_calculation import calculator
 from datetime import datetime
 import asyncio, logging
+from uuid import uuid4 
 
 logger = logging.getLogger("Tools")
 logger.setLevel(logging.DEBUG)
 
-async def _preprocess(pdf_path: str, stablecoin: str) -> CoinData:
-    asset_table: AssetTable = await analyze_pdf(pdf_path=pdf_path,stablecoin=stablecoin)
+def generate_response_id() -> str:
+    return uuid4().hex
+
+async def _preprocess(id:str, report_pdf_url: str, stablecoin: str) -> CoinData:
+    asset_table: AssetTable = await analyze_pdf(id=id, report_pdf_url=report_pdf_url, stablecoin=stablecoin)
     onchain_data: OnChainData = await get_onchain_data()
     coin_data = CoinData(
         stablecoin_ticker=stablecoin, 
@@ -30,21 +34,23 @@ def _calculate_indices(coin_data: CoinData) -> Indices:
 def _final_conclusion(coin_data: CoinData, indices: Indices):
     # TODO analysis 문장 완성
     risk_result = RiskResult(
-        indices=indices,
         coin_data=coin_data,
+        indices=indices,
         analysis="Caution Required"
     )
     return risk_result
 
 def analyze(request: RfRRequest) -> RfRResponse:
     # 메인 프로세스: 지수 계산, 임계값 확인, 총 위험 점수 계산 및 응답 반환
+    id = generate_response_id()
     try:
-        coin_data: CoinData = asyncio.run(_preprocess())
+        coin_data: CoinData = asyncio.run(_preprocess(id=id, report_pdf_url=request.provenance.report_pdf_url, stablecoin=request.stablecoin_ticker))
         indices: Indices =_calculate_indices(coin_data=coin_data)
         risk_result: RiskResult = _final_conclusion(coin_data=coin_data,indices=indices)
     except Exception as e:
         logger.error(f"Error during analyzing {e}")
         return RfRResponse(
+            id=id,
             evaluation_time=datetime.now(),
             stablecoin_ticker = request.stablecoin_ticker,
             chain = request.chain,
@@ -53,6 +59,7 @@ def analyze(request: RfRRequest) -> RfRResponse:
             risk_result=None
         )
     return RfRResponse(
+        id=id,
         evaluation_time=datetime.now(),
         stablecoin_ticker = request.stablecoin_ticker,
         chain = request.chain,
