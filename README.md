@@ -25,6 +25,6 @@ Correctly use following docker command in claude_desktop_config.json.
 If you correctly used script above, you can use the command.
 
 ```bash
-docker run --env-file {\< your.env file location \>} -v {\< your $HOME path \> /rfr_pdf_results}:{/rfr/pdf_results} -i {image}
+docker run --env-file {< your.env file location >} -v {< your $HOME path > /rfr_pdf_results}:{/rfr/pdf_results} -i {image}
 ```
 Note that you should replace $HOME with your pc's home directory path. 
