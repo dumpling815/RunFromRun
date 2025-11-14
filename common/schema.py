@@ -200,7 +200,7 @@ class RfRRequest(BaseModel):
             raise ValueError(f"Unsupported chain: {self.chain}. Supported chains: {AVAILABLE.CHAINS}")
         
 class RfRResponse(BaseModel):
-    id: str
+    id: str                     # 에러시 uuid 대신 일반 string 들어감
     err_status: Optional[str]
     evaluation_time: datetime = datetime.now()
 
