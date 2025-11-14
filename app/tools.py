@@ -50,9 +50,9 @@ def analyze(request: RfRRequest) -> RfRResponse:
             evaluation_time=datetime.now(),
             stablecoin_ticker = request.stablecoin_ticker,
             chain = request.chain,
-            mcp_version=request.mcp_version,
             provenance=request.provenance,
-            risk_result=None
+            risk_result=None,
+            mcp_version=request.mcp_version,
         )
     return RfRResponse(
         id=id,
