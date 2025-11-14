@@ -9,9 +9,6 @@ from uuid import uuid4
 logger = logging.getLogger("Tools")
 logger.setLevel(logging.DEBUG)
 
-def generate_response_id() -> str:
-    return uuid4().hex
-
 async def _preprocess(id:str, report_pdf_url: str, stablecoin: str) -> CoinData:
     asset_table: AssetTable = await analyze_pdf(id=id, report_pdf_url=report_pdf_url, stablecoin=stablecoin)
     onchain_data: OnChainData = await get_onchain_data()
@@ -25,14 +22,14 @@ async def _preprocess(id:str, report_pdf_url: str, stablecoin: str) -> CoinData:
 
 def _calculate_indices(coin_data: CoinData) -> Indices:
     """Calculate OHS, RCR, RQS indices."""
-    ohs_index: Index = calculator.calculate_ohs(coin_data=coin_data)
-    rrs_index: Index = calculator.calculate_rrs(coin_data=coin_data)
-    rqs_index: Index = calculator.calculate_rqs(coin_data=coin_data)
-    result_indices: Indices = calculator.calculate_trs(rqs=rqs_index,rrs=rrs_index,ohs=ohs_index)
+    FRRS_index: Index = calculator.calculate_FRRS(coin_data=coin_data)
+    OHS_index: Index = calculator.calculate_OHS(coin_data=coin_data)
+    result_indices: Indices = calculator.calculate_TRS(FRRS=FRRS_index,OHS=OHS_index)
     return result_indices
 
 def _final_conclusion(coin_data: CoinData, indices: Indices):
     # TODO analysis 문장 완성
+    # TODO alarming 구현
     risk_result = RiskResult(
         coin_data=coin_data,
         indices=indices,
@@ -42,7 +39,7 @@ def _final_conclusion(coin_data: CoinData, indices: Indices):
 
 def analyze(request: RfRRequest) -> RfRResponse:
     # 메인 프로세스: 지수 계산, 임계값 확인, 총 위험 점수 계산 및 응답 반환
-    id = generate_response_id()
+    id = uuid4().hex
     try:
         coin_data: CoinData = asyncio.run(_preprocess(id=id, report_pdf_url=request.provenance.report_pdf_url, stablecoin=request.stablecoin_ticker))
         indices: Indices =_calculate_indices(coin_data=coin_data)

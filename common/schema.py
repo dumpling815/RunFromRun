@@ -147,7 +147,7 @@ class AmountsOnly(BaseModel):
         return asset_table
 
 class OnChainData(BaseModel):
-    outstanding_token: int = Field(..., ge=0)
+    outstanding_token: float = Field(..., ge=0)
     CEX_flow_in: float = Field(..., ge=0)
     CEX_flow_out: float = Field(..., ge=0)
     liquidity_pool_size: float = Field(..., ge=0) # liquidity pool depth
@@ -171,11 +171,10 @@ class Index(BaseModel):
         return self.value > self.threshold
 
 class Indices(BaseModel):
-    index_list: list[Literal['rrs', 'rqs', 'ohs', 'trs']] = ['rrs', 'rqs', 'ohs', 'trs']
-    rrs: Index
-    rqs: Index
-    ohs: Index
-    trs: Index
+    index_list: list[Literal['FRRS', 'OHS', 'TRS']] = ['FRRS', 'OHS', 'TRS']
+    FRRS: Index
+    OHS: Index
+    TRS: Index
 
 class RiskResult(BaseModel):
     coin_data: CoinData
