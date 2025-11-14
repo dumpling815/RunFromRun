@@ -5,7 +5,7 @@ Dockerfile is given in this project.
 
 If you want to build your custom images, use following docker command.
 ```bash
-docker buildx build --env-file .env -t (your_repository):(tag) --push .
+docker buildx build --env-file .env -t <your_repository>:(tag) --push .
 ```
 ## Mounting Directory
 This project leverages local ollama engine, which results in high overhead.
