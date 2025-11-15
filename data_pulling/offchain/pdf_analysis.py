@@ -7,7 +7,6 @@ from typing import Optional
 import matplotlib.pyplot as plt
 import pandas as pd
 from  pathlib import Path
-from decimal import Decimal
 import json, logging, time 
 
 # ollama client의 경우 default로 os.getenv('OLLAMA)
@@ -78,11 +77,11 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly], cusip_appearance: bool, pd
 
     # Voting by median
     for asset_name in ASSET_NAMES:
-        asset_amounts:list[Decimal] = []
+        asset_amounts:list[float] = []
         for amounts in amounts_list:
-            val:Optional[Decimal] = getattr(amounts, asset_name)
+            val:Optional[float] = getattr(amounts, asset_name)
             if val is not None:
-                asset_amounts.append(Decimal(val))
+                asset_amounts.append(float(val))
 
         valid_votes_num = len(asset_amounts)        
         asset_amounts.sort()
@@ -105,7 +104,7 @@ def llm_vote_amounts(amounts_list: list[AmountsOnly], cusip_appearance: bool, pd
 
     return result
 
-def delay_dict_to_list(delay_dict: dict[str,Decimal]) -> list[(str,Decimal)]:
+def delay_dict_to_list(delay_dict: dict[str,float]) -> list[(str,float)]:
     result = []
     for key, value in delay_dict.items():
         result.append((key, value))
@@ -128,7 +127,7 @@ def plotit_asset_tables(stablecoin:str, asset_table: AssetTable):
     plt.tight_layout()   # 라벨 잘림 방지
     plt.savefig(f'{stablecoin}_pdf_analysis_assets.png')
         
-def plotit_delay(stablecoin: str,delay_tup_list: list[(str,Decimal)], model_nums: int):
+def plotit_delay(stablecoin: str,delay_tup_list: list[(str,float)], model_nums: int):
     delay_name=[]
     delay_time=[]
     COLOR = ['blue'] + ['green'] * model_nums + ['orange','red']
@@ -150,7 +149,7 @@ async def analyze_pdf_api_call(pdf_path: Path, stablecoin: str) -> AssetTable:
 
 async def analyze_pdf_local_llm(pdf_hash: str, pdf_path: Path, stablecoin: str) -> AssetTable:
     # ============== 1. PDF에서 데이터프레임 추출 ==============
-    delay_dict: dict[str,Decimal] = {}
+    delay_dict: dict[str,float] = {}
     e2e_start_time = time.time()
     try:
         tables: list[pd.DataFrame] = get_tables_from_pdf(pdf_path, stablecoin)

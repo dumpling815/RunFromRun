@@ -3,7 +3,6 @@ import os, logging
 from dotenv import load_dotenv
 from typing import Literal
 from pathlib import Path
-from decimal import Decimal
 
 # [DEBUG] Development 환경에서는 .env 파일을 로드하도록 설정.
 load_dotenv(dotenv_path="./.env")
@@ -22,7 +21,7 @@ def parse_from_string_env(value: str, is_num: bool) -> list | dict:
         result = []
         result = value[1:-1].replace('"',"").replace("'","").split(",")
         if is_num:
-            result = [Decimal(item.strip()) for item in result]
+            result = [float(item.strip()) for item in result]
         else:
             result = [item.strip() for item in result] # sanitization
         return result
@@ -34,7 +33,7 @@ def parse_from_string_env(value: str, is_num: bool) -> list | dict:
             key = key.strip().strip('"').strip("'")
             val = val.strip().strip('"').strip("'")
             if is_num:
-                val = Decimal(val)
+                val = float(val)
             result[key] = val
         return result
     
@@ -58,9 +57,9 @@ class Available(BaseSettings):
 class Thresholds(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="THRESHOLD_", env_file= "../.env", env_file_encoding= "utf-8", extra="ignore") #[DEBUG] for development purpose
     # model_config = SettingsConfigDict(env_prefix="THRESHOLDS_")
-    FRRS: Decimal
-    OHS: Decimal
-    TRS: list[Decimal] | str
+    FRRS: float
+    OHS: float
+    TRS: list[float] | str
 
     def post_process(self):
         if isinstance(self.TRS, str):
@@ -201,8 +200,8 @@ SYSTEM_PROMPT = """
     - All `amount` values must be in **US DOLLARS** (NOT THOUSANDS/MILLIONS USD). If the table header indicates scale (e.g., "in millions"), MULTIPLY ACCORDINGLY (UNIT MAY BE DIFFER PER TABLE).
     - DIGIT ERRORS ARE ABSOLUTELY UNACCEPTABLE.
     - DO NOT CHANGE NUMBERS. ONLY UNIT SCALING, SUMMING are ALLOWED.
-    - Be careful with numbers that contains ',' you should interpret them as thousands separator, not decimal point.
-    - A comma should **never** be considered a decimal point.
+    - Be careful with numbers that contains ',' you should interpret them as thousands separator, not float point.
+    - A comma should **never** be considered a float point.
 
     4) **Fill Missing Items Carefully**
     - If an element that needs to be filled in is not visible, set its value to 0.

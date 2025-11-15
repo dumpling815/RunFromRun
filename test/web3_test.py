@@ -1,6 +1,5 @@
 import requests, os
 from web3 import Web3
-from decimal import Decimal
 ETH_RPC='https://ethereum-rpc.publicnode.com'
 
 ERC20_ABI = [
@@ -14,7 +13,7 @@ ERC20_ABI = [
     {
         "constant": True,
         "inputs": [],
-        "name": "decimals",
+        "name": "floats",
         "outputs": [{"name": "", "type": "uint8"}],
         "type": "function"
     }
@@ -28,7 +27,7 @@ CHAINS = {
     }
 }
 
-def get_total_supply_evm(cfg: dict) -> Decimal:
+def get_total_supply_evm(cfg: dict) -> float:
     rpc_url = ETH_RPC
     w3 = Web3(Web3.HTTPProvider(rpc_url))
 
@@ -37,13 +36,13 @@ def get_total_supply_evm(cfg: dict) -> Decimal:
         abi=ERC20_ABI,
     )
     raw_supply = contract.functions.totalSupply().call()
-    decimals = contract.functions.decimals().call()
+    floats = contract.functions.floats().call()
 
-    return Decimal(raw_supply) / (Decimal(10) ** decimals)
+    return float(raw_supply) / (float(10) ** floats)
 
 def get_usdt_supply_by_chain():
     results = {}
-    total = Decimal(0)
+    total = float(0)
 
     for name, cfg in CHAINS.items():
         t = cfg["type"]

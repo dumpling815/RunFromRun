@@ -2,13 +2,12 @@ from pydantic import BaseModel, Field
 from typing import Literal, Optional
 from datetime import datetime
 from common.settings import AVAILABLE
-from decimal import Decimal
 
 class Asset(BaseModel):
     tier: Literal[0, 1, 2, 3, 4, 5] = Field(..., frozen=True) # 0 is for total amount
-    qls_score: Decimal = Field(..., ge=0, le=1, frozen=True)
-    amount: Decimal | None = Field(...,) # US dollar amount (부채의 경우 음수로 표기되는 경우도 있으므로 ge=0 삭제)
-    ratio: Decimal | None = Field(..., ge=0, le=100)
+    qls_score: float = Field(..., ge=0, le=1, frozen=True)
+    amount: float | None = Field(...,) # US dollar amount (부채의 경우 음수로 표기되는 경우도 있으므로 ge=0 삭제)
+    ratio: float | None = Field(..., ge=0, le=100)
 
 class AssetTable(BaseModel):
     # Tier 1 Assets
@@ -54,7 +53,7 @@ class AssetTable(BaseModel):
         if v is None:
             return "—"
         try:
-            return f"{Decimal(v):,.2f}"
+            return f"{float(v):,.2f}"
         except Exception:
             return str(v)
 
@@ -63,7 +62,7 @@ class AssetTable(BaseModel):
         if v is None:
             return "—"
         try:
-            return f"{Decimal(v):.2f}%"
+            return f"{float(v):.2f}%"
         except Exception:
             return str(v)
 
@@ -113,26 +112,26 @@ class AssetTable(BaseModel):
 
 # LLM 입력용 모델
 class AmountsOnly(BaseModel):
-    cash_bank_deposits: Optional[Decimal] = Field(None)
-    us_treasury_bills: Optional[Decimal] = Field(None)
-    gov_mmf: Optional[Decimal] = Field(None)
-    other_deposits: Optional[Decimal] = Field(None)
+    cash_bank_deposits: Optional[float] = Field(None)
+    us_treasury_bills: Optional[float] = Field(None)
+    gov_mmf: Optional[float] = Field(None)
+    other_deposits: Optional[float] = Field(None)
     
-    repo_overnight_term: Optional[Decimal] = Field(None)
-    non_us_treasury_bills: Optional[Decimal] = Field(None)
-    us_treasury_other_notes_bonds: Optional[Decimal] = Field(None)
+    repo_overnight_term: Optional[float] = Field(None)
+    non_us_treasury_bills: Optional[float] = Field(None)
+    us_treasury_other_notes_bonds: Optional[float] = Field(None)
     
-    corporate_bonds: Optional[Decimal] = Field(None)
-    precious_metals: Optional[Decimal] = Field(None)
-    digital_assets: Optional[Decimal] = Field(None)
+    corporate_bonds: Optional[float] = Field(None)
+    precious_metals: Optional[float] = Field(None)
+    digital_assets: Optional[float] = Field(None)
     
-    secured_loans: Optional[Decimal] = Field(None)
-    other_investments: Optional[Decimal] = Field(None) 
-    custodial_concentrated_asset: Optional[Decimal] = Field(None)
+    secured_loans: Optional[float] = Field(None)
+    other_investments: Optional[float] = Field(None) 
+    custodial_concentrated_asset: Optional[float] = Field(None)
 
     # correction value는 LLM 응답 후 계산되므로 입력 모델에는 포함하지 않음.
 
-    total: Decimal = Field(..., ge=0)
+    total: float = Field(..., ge=0)
 
     def to_asset_table(self, cusip_appearance: bool, pdf_hash: str) -> AssetTable:
         asset_table = AssetTable(cusip_appearance=cusip_appearance, pdf_hash=pdf_hash)
@@ -148,13 +147,13 @@ class AmountsOnly(BaseModel):
         return asset_table
 
 class OnChainData(BaseModel):
-    outstanding_token: Decimal = Field(..., ge=0)
-    CEX_flow_in: Decimal = Field(..., ge=0)
-    CEX_flow_out: Decimal = Field(..., ge=0)
-    liquidity_pool_size: Decimal = Field(..., ge=0) # liquidity pool depth
-    whale_asset_change: Decimal = Field(..., description="Change in whale assets (in USD)")
-    mint_burn_ratio: Decimal = Field(..., ge=0, description="Ratio of minting to burning activities")
-    TVL: Decimal = Field(..., ge=0, description="Total Value Locked in USD")
+    outstanding_token: float = Field(..., ge=0)
+    CEX_flow_in: float = Field(..., ge=0)
+    CEX_flow_out: float = Field(..., ge=0)
+    liquidity_pool_size: float = Field(..., ge=0) # liquidity pool depth
+    whale_asset_change: float = Field(..., description="Change in whale assets (in USD)")
+    mint_burn_ratio: float = Field(..., ge=0, description="Ratio of minting to burning activities")
+    TVL: float = Field(..., ge=0, description="Total Value Locked in USD")
     
 class CoinData(BaseModel):
     stablecoin_ticker: str = Field(..., pattern="^[A-Z]{3,5}$", description="Stablecoin symbol (3-5 uppercase letters)")
@@ -164,8 +163,8 @@ class CoinData(BaseModel):
 
 class Index(BaseModel):
     name : str = Field(..., pattern="^[a-z]*$", min_length=3, max_length=3)
-    value: Decimal = Field(..., ge=0, le=100, description="Index value between 0 and 100")
-    threshold: Decimal = Field(..., ge=0, le=100, description="Threshold value between 0 and 100")
+    value: float = Field(..., ge=0, le=100, description="Index value between 0 and 100")
+    threshold: float = Field(..., ge=0, le=100, description="Threshold value between 0 and 100")
     def threshold_check(self) -> bool:
         """Check if the index value exceeds the threshold."""
         return self.value > self.threshold
