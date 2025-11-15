@@ -80,7 +80,6 @@ class OllamaSettings(BaseSettings):
 class APIKeys(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="API_KEY_", env_file= "../.env", env_file_encoding= "utf-8", extra="ignore") #[DEBUG] for development purpose
     OPENAI: str | None
-    KOSCOM: str | None
     COINGECKO: str | None
     OPENFIGI: str | None
 

@@ -1,5 +1,4 @@
 from common.schema import Index, Indices, AssetTable, Asset, CoinData
-# from base_calculator import BaseIndexCalculator 이후 코드 확장 시 고려할 수 있음.
 from common.settings import THRESHOLDS
 from numpy import log
 import logging

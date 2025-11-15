@@ -1,6 +1,6 @@
 import logging, asyncio
 from pathlib import Path
-from data_pulling.pdf_analysis import analyze_pdf, plotit_asset_tables
+from data_pulling.offchain.pdf_analysis import analyze_pdf, plotit_asset_tables
 if __name__ == "__main__":
     import sys
     logging.basicConfig(

@@ -1,6 +1,6 @@
 from common.settings import CAMELOT_MODE
-from data_pulling.dataframe_process import get_tables_from_pdf, get_pdf_style
-from data_pulling.pdf_analysis import markdownize_tables
+from data_pulling.offchain.dataframe_process import get_tables_from_pdf, get_pdf_style
+from data_pulling.offchain.pdf_analysis import markdownize_tables
 from rich import print
 
 if __name__ == "__main__":

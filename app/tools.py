@@ -1,6 +1,6 @@
 from common.schema import AssetTable, OnChainData, CoinData, Index, Indices, RiskResult, RfRRequest, RfRResponse
-from data_pulling.pdf_analysis import analyze_pdf
-from data_pulling.get_onchain import get_onchain_data
+from data_pulling.offchain.pdf_analysis import analyze_pdf
+from data_pulling.onchain.get_onchain import get_onchain_data
 from index_calculation import calculator
 from datetime import datetime
 import asyncio, logging

@@ -1,7 +1,7 @@
 from common.settings import OLLAMASETTINGS, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE, LLM_OPTION
 from common.schema import AssetTable, AmountsOnly, Asset
-from data_pulling.pdf_fetch_caching import download_and_hash_pdf, search_log, get_AssetTable_from_cache, cache_result
-from data_pulling.dataframe_process import get_tables_from_pdf
+from data_pulling.offchain.pdf_fetch_caching import download_and_hash_pdf, search_log, get_AssetTable_from_cache, cache_result
+from data_pulling.offchain.dataframe_process import get_tables_from_pdf
 from ollama import AsyncClient, ChatResponse, Options
 from typing import Optional
 import matplotlib.pyplot as plt

@@ -1,5 +1,5 @@
-from data_pulling.openfigi_api import replace_cusip_openfigi
-from data_pulling.dataframe_process import get_tables_from_pdf
+from data_pulling.offchain.openfigi_api import replace_cusip_openfigi
+from data_pulling.offchain.dataframe_process import get_tables_from_pdf
 
 if __name__ == "__main__":
     USDC_PDF_PATH = "./test/report/USDC.pdf"
