@@ -3,6 +3,7 @@ import pandas as pd
 import camelot, fitz, re # fitz for PyMuPDF
 from common.settings import CAMELOT_MODE, API_KEYS
 from data_pulling.offchain.openfigi_api import replace_cusip_openfigi
+from decimal import Decimal
 
 # PDF 분석 함수
 def get_pdf_style(pdf_path, sample_pages=3):
@@ -152,7 +153,7 @@ def eliminate_footnotes(df: pd.DataFrame) -> pd.DataFrame:
         if not isinstance(s, str) or not s:
             return s
         try:
-            float(s.replace(",","")) # 전체가 숫자인 경우는 그대로 반환
+            Decimal(s.replace(",","")) # 전체가 숫자인 경우는 그대로 반환
         except ValueError:
             last_word = s.rstrip().rsplit(" ",1)[-1]
             if last_word[-1] >= '0' and last_word[-1] <= '9':

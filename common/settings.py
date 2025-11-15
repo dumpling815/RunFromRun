@@ -3,6 +3,7 @@ import os, logging
 from dotenv import load_dotenv
 from typing import Literal
 from pathlib import Path
+from decimal import Decimal
 
 # [DEBUG] Development 환경에서는 .env 파일을 로드하도록 설정.
 load_dotenv(dotenv_path="./.env")
@@ -21,7 +22,7 @@ def parse_from_string_env(value: str, is_num: bool) -> list | dict:
         result = []
         result = value[1:-1].replace('"',"").replace("'","").split(",")
         if is_num:
-            result = [float(item.strip()) for item in result]
+            result = [Decimal(item.strip()) for item in result]
         else:
             result = [item.strip() for item in result] # sanitization
         return result
@@ -33,7 +34,7 @@ def parse_from_string_env(value: str, is_num: bool) -> list | dict:
             key = key.strip().strip('"').strip("'")
             val = val.strip().strip('"').strip("'")
             if is_num:
-                val = float(val)
+                val = Decimal(val)
             result[key] = val
         return result
     
@@ -57,9 +58,9 @@ class Available(BaseSettings):
 class Thresholds(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="THRESHOLD_", env_file= "../.env", env_file_encoding= "utf-8", extra="ignore") #[DEBUG] for development purpose
     # model_config = SettingsConfigDict(env_prefix="THRESHOLDS_")
-    FRRS: float
-    OHS: float
-    TRS: list[float] | str
+    FRRS: Decimal
+    OHS: Decimal
+    TRS: list[Decimal] | str
 
     def post_process(self):
         if isinstance(self.TRS, str):
