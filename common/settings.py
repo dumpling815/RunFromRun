@@ -89,6 +89,16 @@ class APIURLs(BaseSettings):
     COINGECKO_DEMO_API_URL: str | None
     OPENFIGI_MAPPING_API_URL: str | None
 
+class ChainRPCURLs(BaseSettings):
+    model_config = SettingsConfigDict(env_file= "../.env", env_file_encoding= "utf-8", extra="ignore") #[DEBUG] for development purpose
+    ETHEREUM: str
+    BINANCE_SMART_CHAIN: str
+    ARBITRUM_ONE: str
+    SOLANA: str
+    TRON: str
+    BASE: str
+    SUI: str
+
 
 # Instance Initiate
 AVAILABLE = Available().post_process()
@@ -96,6 +106,7 @@ THRESHOLDS = Thresholds().post_process()
 OLLAMASETTINGS = OllamaSettings().post_process()   
 API_KEYS = APIKeys()
 API_URLS = APIURLs()
+CHAIN_RPC_URLS = ChainRPCURLs()
 CAMELOT_MODE:dict = parse_from_string_env(value=os.environ.get("CAMELOT_MODE"), is_num=False)
 LLM_OPTION:Literal["local","api"] = os.environ.get("LLM_OPTION")
 MOUNTED_DIR:Path = Path(os.environ.get("MOUNTED_DIR"))

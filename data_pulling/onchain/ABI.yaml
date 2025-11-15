@@ -1,0 +1,97 @@
+ERC20:
+  - constant: true
+    inputs:
+      - name: _owner
+        type: address
+    name: balanceOf
+    outputs:
+      - name: balance
+        type: uint256
+    payable: false
+    stateMutability: view
+    type: function
+  - constant: true
+    inputs: []
+    name: totalSupply
+    outputs:
+      - name: totalSupply
+        type: uint256
+    payable: false
+    stateMutability: view
+    type: function
+  - constant: true
+    inputs: []
+    name: decimals
+    outputs:
+      - name: decimals
+        type: uint8
+    payable: false
+    stateMutability: view
+    type: function
+  - constant: true
+    inputs: []
+    name: symbol
+    outputs:
+      - name: symbol
+        type: string
+    payable: false
+    stateMutability: view
+    type: function
+  - constant: true
+    inputs: []
+    name: name
+    outputs:
+      - name: name
+        type: string
+    payable: false
+    stateMutability: view
+    type: function
+
+TRC20:
+  - constant: true
+    inputs:
+      - name: _owner
+        type: address
+    name: balanceOf
+    outputs:
+      - name: balance
+        type: uint256
+    payable: false
+    stateMutability: view
+    type: function
+  - constant: true
+    inputs: []
+    name: totalSupply
+    outputs:
+      - name: totalSupply
+        type: uint256
+    payable: false
+    stateMutability: view
+    type: function
+  - constant: true
+    inputs: []
+    name: decimals
+    outputs:
+      - name: decimals
+        type: uint8
+    payable: false
+    stateMutability: view
+    type: function
+  - constant: true
+    inputs: []
+    name: symbol
+    outputs:
+      - name: symbol
+        type: string
+    payable: false
+    stateMutability: view
+    type: function
+  - constant: true
+    inputs: []
+    name: name
+    outputs:
+      - name: name
+        type: string
+    payable: false
+    stateMutability: view
+    type: function

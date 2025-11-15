@@ -1,0 +1,90 @@
+USDT:
+  ethereum:
+    contract: '0xdac17f958d2ee523a2206206994597c13d831ec7'
+    rpc_env: ETH_RPC
+    type: evm
+  solana:
+    contract: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'
+    rpc_env: SOLANA_RPC
+    type: solana
+  tron:
+    contract: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'
+    rpc_env: TRON_RPC
+    type: tron
+USDC:
+  arbitrum_one:
+    contract: '0xaf88d065e77c8cc2239327c5edb3a432268e5831'
+    rpc_env: ARBITRUM_RPC
+    type: evm
+  base:
+    contract: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913'
+    rpc_env: BASE_RPC
+    type: evm
+  ethereum:
+    contract: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+    rpc_env: ETH_RPC
+    type: evm
+  solana:
+    contract: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
+    rpc_env: SOLANA_RPC
+    type: solana
+  sui:
+    contract: '0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC'
+    rpc_env: SUI_RPC
+    type: sui
+FDUSD:
+  arbitrum_one:
+    contract: '0x93c9932e4afa59201f0b5e63f7d816516f1669fe'
+    rpc_env: ARBITRUM_RPC
+    type: evm
+  binance_smart_chain:
+    contract: '0xc5f0f7b66764f6ec8c8dff7ba683102295e16409'
+    rpc_env: binance_smart_chain_RPC
+    type: evm
+  ethereum:
+    contract: '0xc5f0f7b66764f6ec8c8dff7ba683102295e16409'
+    rpc_env: ETH_RPC
+    type: evm
+  solana:
+    contract: '9zNQRsGLjNKwCUU5Gq5LR8beUCPzQMVMqKAi3SSZh54u'
+    rpc_env: SOLANA_RPC
+    type: solana
+  sui:
+    contract: '0xf16e6b723f242ec745dfd7634ad072c42d5c1d9ac9d62a39c381303eaa57693a::fdusd::FDUSD'
+    rpc_env: SUI_RPC
+    type: sui
+PYUSD:
+  arbitrum_one:
+    contract: '0x46850ad61c2b7d64d08c9c754f45254596696984'
+    rpc_env: ARBITRUM_RPC
+    type: evm
+  ethereum:
+    contract: '0x6c3ea9036406852006290770bedfcaba0e23a0e8'
+    rpc_env: ETH_RPC
+    type: evm
+  solana:
+    contract: '2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo'
+    rpc_env: SOLANA_RPC
+    type: solana
+TUSD:
+  binance_smart_chain:
+    contract: '0x14016e85a25aeb13065688cafb43044c2ef86784'
+    rpc_env: binance_smart_chain_RPC
+    type: evm
+  ethereum:
+    contract: '0x0000000000085d4780b73119b644ae5ecd22b376'
+    rpc_env: ETH_RPC
+    type: evm
+  tron:
+    contract: 'TUpMhErZL2fhh4sVNULAbNKLokS4GjC1F4'
+    rpc_env: TRON_RPC
+    type: tron
+USDP:
+  ethereum:
+    contract: '0x8e870d67f660d95d5be530380d0ec0bd388289e1'
+    rpc_env: ETH_RPC
+    type: evm
+  solana:
+    contract: 'HVbpJAQGNpkgBaYBZQBR1t7yFdvaYVp2vCQQfKKEN4tM'
+    rpc_env: SOLANA_RPC
+    type: solana

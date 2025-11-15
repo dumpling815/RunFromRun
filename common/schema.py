@@ -110,7 +110,7 @@ class AssetTable(BaseModel):
         result["total"] = self.total
         return result
 
-# LLM 입력용 모델
+# LLM 입력용 모델. to_asset_table 메서드를 통해 llm_voting 이후 AssetTable로 변환
 class AmountsOnly(BaseModel):
     cash_bank_deposits: Optional[float] = Field(None)
     us_treasury_bills: Optional[float] = Field(None)
