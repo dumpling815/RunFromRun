@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent
 PDF_POOL_DIRECTORY = BASE_DIR / "pdfs"
 PDF_POOL_DIRECTORY.mkdir(parents=True, exist_ok=True)
 
-logger = logging.getLogger("pdf_fetch")
+logger = logging.getLogger("RunFromRun.Analyze.Offchain.PDF_Fetch")
 logger.setLevel(logging.DEBUG)
 
 def download_and_hash_pdf(report_pdf_url: str, stablecoin: str) -> tuple[str,Path]: 

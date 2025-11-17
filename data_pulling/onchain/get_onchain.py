@@ -2,8 +2,7 @@
 from common.settings import API_KEYS, API_URLS, CHAIN_RPC_URLS
 from common.schema import OnChainData
 from data_pulling.onchain import evm, tron, solana, sui
-import asyncio
-import yaml
+import asyncio, yaml, logging
 
 # Target Chain: Ethereum, Solana, Tron, Arbitrum, Base, BSC, SUI, 
 # evm 기반: Ethereum, BSC, Arbitrum, Base
@@ -17,6 +16,10 @@ import yaml
 # 아래 예시의 totalSupply 함수는 토큰의 총 공급량을 반환하는 함수 정의임.
 # Decimal 같은 경우는 토큰의 소수점 자릿수를 반환하는 함수 정의임.
 # 컨트랙트 안에서는 정수 형태로 저장하기 때문에, 소수점 자릿수를 따로 알아야 실제 토큰 수량을 계산할 수 있음.
+
+logger = logging.getLogger("RunFromRun.Analyze.Onchain")
+logger.setLevel(logging.DEBUG)
+
 
 async def get_total_supply_each_chain(coin_chain_info:dict, ABI_dict: dict) -> dict[str, float]:    
     chains: list[str] = coin_chain_info.keys()
@@ -36,7 +39,9 @@ async def get_total_supply_each_chain(coin_chain_info:dict, ABI_dict: dict) -> d
             raise NotImplementedError(f"Unsupported chain type: {cfg['type']}")
     
     # 병렬 실행으로 성능 향상
+    logger.debug("Request to each chains RPC node.")
     supplies = await asyncio.gather(*coros)
+    logger.debug("Chain RPC Completed")
     results: dict[str,float] = {chain: supply for chain, supply in zip(chains, supplies)}
 
     return results

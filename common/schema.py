@@ -201,7 +201,7 @@ class RfRRequest(BaseModel):
         
 class RfRResponse(BaseModel):
     id: str                     # 에러시 uuid 대신 일반 string 들어감
-    err_status: Optional[str]
+    err_status: str | None = None
     evaluation_time: datetime = datetime.now()
 
     stablecoin_ticker: str = Field(..., pattern=r"^[A-Z]{3,5}$", description="Stablecoin symbol (3-5 uppercase letters)")

@@ -11,7 +11,7 @@ import json, logging, time
 
 # ollama client의 경우 default로 os.getenv('OLLAMA)
 
-logger = logging.getLogger("pdf_analysis")
+logger = logging.getLogger("RunFromRun.Analyze.Offchain")
 logger.setLevel(logging.DEBUG)
 
 # 토큰 제한 확인

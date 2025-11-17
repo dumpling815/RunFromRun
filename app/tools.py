@@ -6,12 +6,13 @@ from datetime import datetime
 import asyncio, logging
 from uuid import uuid4 
 
-logger = logging.getLogger("Tools")
+logger = logging.getLogger("RunFromRun.Analyze")
 logger.setLevel(logging.DEBUG)
 
 async def _preprocess(id:str, report_pdf_url: str, stablecoin: str) -> CoinData:
-    asset_table: AssetTable = await analyze_pdf(id=id, report_pdf_url=report_pdf_url, stablecoin=stablecoin) # 로그 기록을 위해 id 필요
-    onchain_data: OnChainData = await get_onchain_data()
+    asset_table_coro = analyze_pdf(id=id, report_pdf_url=report_pdf_url, stablecoin=stablecoin) # 로그 기록을 위해 id 필요
+    onchain_data_coro =  get_onchain_data(stablecoin=stablecoin)
+    asset_table, onchain_data = await asyncio.gather(asset_table_coro, onchain_data_coro)
     coin_data = CoinData(
         stablecoin_ticker=stablecoin, 
         asset_table=asset_table, 
@@ -40,14 +41,18 @@ async def analyze(request: RfRRequest) -> RfRResponse:
     # 메인 프로세스: 지수 계산, 임계값 확인, 총 위험 점수 계산 및 응답 반환
     id:str = uuid4().hex
     try:
+        logger.debug("Preprocessing...")
         coin_data: CoinData = await _preprocess(id=id, report_pdf_url=request.provenance.report_pdf_url, stablecoin=request.stablecoin_ticker)
+        logger.debug("Preprocessing Complete. Starting Index Calculation")
         indices: Indices =_calculate_indices(coin_data=coin_data)
+        logger.debug("Calculation Completed. Starting Alarming and Decision Making")
         risk_result: RiskResult = _alarm_and_complete(coin_data=coin_data,indices=indices)
+        logger.debug("All Mision COMPLETED")
     except Exception as e:
         logger.error(f"Error during analyzing {e}")
         return RfRResponse(
             id="MCP Server Error",
-            err_status=e,
+            err_status=str(e),
             stablecoin_ticker = request.stablecoin_ticker,
             provenance=request.provenance,
             mcp_version=request.mcp_version,

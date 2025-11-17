@@ -2,7 +2,7 @@ version: '3.8'
 services:
   # RfR MCP Server 서비스 정의 (Risk Analysis Engine)
   rfr_mcp_server:
-    image: "minuk0815/sentinelx:0.0.38" # 버전 태그가 맞는지 반드시 확인
+    image: "minuk0815/sentinelx:0.0.39" # 버전 태그가 맞는지 반드시 확인
     container_name: "rfr_mcp_server"
     ports:
       - "8000:8000"
@@ -10,10 +10,21 @@ services:
       - .env
     networks:
       - mcp-network
+    volumes:
+      - /Users/minuk-0815/rfr_pdf_results:/rfr/pdf_results
     restart: always 
-  ollama:
+  ollama: # 다운받은 모델을 볼륨 마운트할지 보아야함.
     image: "ollama/ollama:latest"
     container_name: "ollama"
+    volumes:
+      - /Users/minuk-0815/.ollama:/root/.ollama
+    # GPU 사용시 다음 줄의 주석 처리를 제거 (NVIDIA toolkit)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - capabilities: [gpu]
+    #         - driver: nvidia
     ports:
       - "11434:11434"
     networks:

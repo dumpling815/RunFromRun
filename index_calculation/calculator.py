@@ -19,21 +19,25 @@ def _calculate_RQS(asset_table: AssetTable) -> float:
     return float(RQS)
 
 def calculate_FRRS(coin_data: CoinData) -> Index:
-    logger.info("RQS Calculation Initialized")
+    logger.info("FRRS Calculation Initialized")
     RQS = _calculate_RQS(asset_table=coin_data.asset_table)
     TA_score :float = 1.00 if coin_data.asset_table.cusip_appearance else 0.85 # Transparency Adjustment Score
     collateralization_ratio :float = coin_data.asset_table.total.amount / coin_data.onchain_data.outstanding_token
-    SA_score :float = 1.0 + 0.05 * log(collateralization_ratio - 1.0) * 100 + 1 if collateralization_ratio >= 1 else 0
+    SA_score :float = 1.0 + 0.05 * log((collateralization_ratio - 1) * 100 + 1) if collateralization_ratio >= 1 else 0
     logger.debug(f"TA_score: {TA_score}, SA_score: {SA_score}, Collateralization Ratio: {collateralization_ratio}")
     FRRS = min(100,100 * RQS * TA_score * SA_score)
     logger.info("FRRS Calculation Completed")
     return Index(name="FRRS", value=FRRS, threshold=THRESHOLDS.FRRS)
 
 def calculate_OHS(coin_data: CoinData) -> Index:
+    logger.info("OHS Calculation Initialized")
     # TODO: Implement this.
-    return Index(name="ohs", value=60, threshold=THRESHOLDS.OHS)
+    logger.info("OHS Calculation Completed")
+    return Index(name='OHS', value=60, threshold=THRESHOLDS.OHS)
 
 def calculate_TRS(FRRS: Index, OHS: Index) -> Indices:
-    TRS: Index = Index(name="TRS", value=0.7 * FRRS.value + 0.3 * OHS.value, threshold=THRESHOLDS.TRS)
+    logger.info("TRS Calculation Initialized")
+    TRS: Index = Index(name="TRS", value=0.7 * FRRS.value + 0.3 * OHS.value, threshold=THRESHOLDS.TRS[0])
+    logger.info("TRS Calculation Completed")
     return Indices(FRRS=FRRS,OHS=OHS,TRS=TRS)
     
