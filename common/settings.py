@@ -56,7 +56,6 @@ class Available(BaseSettings):
 
 class Thresholds(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="THRESHOLD_", env_file= "../.env", env_file_encoding= "utf-8", extra="ignore") #[DEBUG] for development purpose
-    # model_config = SettingsConfigDict(env_prefix="THRESHOLDS_")
     FRRS: float
     OHS: float
     TRS: list[float] | str

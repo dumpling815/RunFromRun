@@ -49,7 +49,6 @@ def analyze(request: RfRRequest) -> RfRResponse:
             id="MCP Server Error",
             err_status=e,
             stablecoin_ticker = request.stablecoin_ticker,
-            chain = request.chain,
             provenance=request.provenance,
             mcp_version=request.mcp_version,
         )
@@ -57,7 +56,6 @@ def analyze(request: RfRRequest) -> RfRResponse:
         id=id,
         evaluation_time=datetime.now(),
         stablecoin_ticker = request.stablecoin_ticker,
-        chain = request.chain,
         provenance=request.provenance,
         risk_result=risk_result,
         mcp_version=request.mcp_version

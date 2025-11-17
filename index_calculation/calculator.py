@@ -31,8 +31,7 @@ def calculate_FRRS(coin_data: CoinData) -> Index:
 
 def calculate_OHS(coin_data: CoinData) -> Index:
     # TODO: Implement this.
-    pass
-    # return Index(name="ohs", value=ohs, threshold=THRESHOLDS.OHS)
+    return Index(name="ohs", value=60, threshold=THRESHOLDS.OHS)
 
 def calculate_TRS(FRRS: Index, OHS: Index) -> Indices:
     TRS: Index = Index(name="TRS", value=0.7 * FRRS.value + 0.3 * OHS.value, threshold=THRESHOLDS.TRS)

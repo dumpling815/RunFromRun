@@ -50,3 +50,14 @@ async def get_onchain_data(stablecoin: str) -> OnChainData:
     chain_token_dict = await get_total_supply_each_chain(coin_chain_info=coin_chain_info, ABI_dict=ABI_dict)
     outstanding_token = sum(chain_token_dict.values())
 
+    # DEBUG
+    return OnChainData(
+        outstanding_token=outstanding_token,
+        CEX_flow_in=10000000,
+        CEX_flow_out=10000000,
+        liquidity_pool_size=1000,
+        whale_asset_change=10000,
+        mint_burn_ratio=1.1,
+        TVL=1.0
+    )
+

@@ -4,7 +4,10 @@ from app.tools import analyze
 import logging
 
 # Initialize FastMCP server
-mcp = FastMCP("RfR Server")
+mcp = FastMCP(
+    name="RfR Server",
+    host="0.0.0.0"
+    )
 
 logger = logging.getLogger("RFR SERVER")
 logger.setLevel(logging.DEBUG)
@@ -31,7 +34,7 @@ def analyze_stablecoin_risk(request: RfRRequest) -> RfRResponse:
 
 def main():
     logger.info("RfR Server Initiating...")
-    mcp.run()
+    mcp.run(transport="streamable-http")
     logger.info("Finished")
 
 if __name__ == "__main__":

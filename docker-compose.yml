@@ -2,17 +2,24 @@ version: '3.8'
 services:
   # RfR MCP Server 서비스 정의 (Risk Analysis Engine)
   rfr_mcp_server:
-    image: "minuk0815/sentinelx:0.0.24" # 버전 태그가 맞는지 반드시 확인
-    hostname: 0.0.0.0
+    image: "minuk0815/sentinelx:0.0.37" # 버전 태그가 맞는지 반드시 확인
+    container_name: "rfr_mcp_server"
     ports:
       - "8000:8000"
-    
     env_file:
       - .env
-
-    # 컨테이너 종료 시 자동 재시작
-    restart: always
+    networks:
+      - mcp-network
+    restart: always 
+  ollama:
+    image: "ollama/ollama:latest"
+    container_name: "ollama"
+    ports:
+      - "11434:11434"
+    networks:
+      - mcp-network
 
 networks:
   mcp-network:
+    name: mcp-network
     driver: bridge

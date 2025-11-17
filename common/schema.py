@@ -182,11 +182,10 @@ class RiskResult(BaseModel):
 
 class Provenance(BaseModel):
         report_issuer: str = Field(..., pattern=r"^[\w -]{3,50}$", description="Issuer of the report (3-50 characters)")
-        report_pdf_url: str = Field(..., pattern=r"^https?://[^\s/$.?#].[^\s]*$", description="URL of the report pdf")
+        report_pdf_url: str = Field(..., pattern=r"^https?://[^\s/$.?#].[^\s]*$", description="URL of the coin issuer's official report pdf")
 
 class RfRRequest(BaseModel):
     stablecoin_ticker: str = Field(..., pattern=r"^[A-Z]{3,5}$", description="Stablecoin symbol (3-5 uppercase letters)")
-    chain: str = Field(..., pattern=r"^[\w -]{3,20}$", description="The name of the chain on which the stable coin was issued (3-20 characters)")
     provenance: Provenance
 
     # mcp_version의 경우, 처음 도커 컨테이너 이미지 빌드 시점에 사용되고, 이후 서버 내부에서는 디버깅 용도로만 사용될 예정.
@@ -196,8 +195,9 @@ class RfRRequest(BaseModel):
         # Check if the request data is avilable and valid
         if self.stablecoin_ticker not in AVAILABLE.COINS:
             raise ValueError(f"Unsupported stablecoin symbol: {self.stablecoin_ticker}. Supported symbols: {AVAILABLE.COINS}")
-        if self.chain not in AVAILABLE.CHAINS:
-            raise ValueError(f"Unsupported chain: {self.chain}. Supported chains: {AVAILABLE.CHAINS}")
+        # [Deprecated]
+        # if self.chain not in AVAILABLE.CHAINS:
+        #     raise ValueError(f"Unsupported chain: {self.chain}. Supported chains: {AVAILABLE.CHAINS}")
         
 class RfRResponse(BaseModel):
     id: str                     # 에러시 uuid 대신 일반 string 들어감
@@ -205,7 +205,6 @@ class RfRResponse(BaseModel):
     evaluation_time: datetime = datetime.now()
 
     stablecoin_ticker: str = Field(..., pattern=r"^[A-Z]{3,5}$", description="Stablecoin symbol (3-5 uppercase letters)")
-    chain: str = Field(..., pattern=r"^[a-zA-Z0-9_ -]{3,20}$", description="Blockchain name (3-20 characters)")
     provenance: Provenance
 
     risk_result: RiskResult | None = None
