@@ -18,16 +18,21 @@ To make correct directory in your system, use 'touch_mount_dir.sh' in this proje
 ```
 ## Claude Desktop
 This project leverages claude desktop's MCP client for default.
+Use .env.example to make correct .env file in your directory.
+```bash
+cp .env.example .env
+```
+You can replace by your own image.
 ```json
 "Stablecoin Risk Analyzer": {
       "command": "docker",
       "args": [
         "run",
-        "--env-file", "/Users/minuk-0815/Trading/RunFromRun/.env",
+        "--env-file", "/<your directory>/.env",
         "-v",
-        "/Users/minuk-0815/rfr_results",
+        "/<your mounting directory>",
         "-i",
-        "minuk0815/sentinelx:0.0.34"
+        "minuk0815/sentinelx:<latest version tag>" 
       ]
     }
 ```
