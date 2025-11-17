@@ -36,11 +36,11 @@ def _alarm_and_complete(coin_data: CoinData, indices: Indices):
     )
     return risk_result
 
-def analyze(request: RfRRequest) -> RfRResponse:
+async def analyze(request: RfRRequest) -> RfRResponse:
     # 메인 프로세스: 지수 계산, 임계값 확인, 총 위험 점수 계산 및 응답 반환
     id:str = uuid4().hex
     try:
-        coin_data: CoinData = asyncio.run(_preprocess(id=id, report_pdf_url=request.provenance.report_pdf_url, stablecoin=request.stablecoin_ticker))
+        coin_data: CoinData = await _preprocess(id=id, report_pdf_url=request.provenance.report_pdf_url, stablecoin=request.stablecoin_ticker)
         indices: Indices =_calculate_indices(coin_data=coin_data)
         risk_result: RiskResult = _alarm_and_complete(coin_data=coin_data,indices=indices)
     except Exception as e:
