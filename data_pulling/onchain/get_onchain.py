@@ -18,32 +18,22 @@ import yaml
 # Decimal 같은 경우는 토큰의 소수점 자릿수를 반환하는 함수 정의임.
 # 컨트랙트 안에서는 정수 형태로 저장하기 때문에, 소수점 자릿수를 따로 알아야 실제 토큰 수량을 계산할 수 있음.
 
-async def get_total_supply_each_chain(stablecoin: str) -> dict[str, float]:
-    # YAML 파일에서 stablecoin에 해당하는 체인 정보와 ABI 불러오기
-    with open("./data_pulling/onchain/chain_config.yaml", 'r') as f:
-        coin_chain_info:dict = yaml.full_load(f)[stablecoin]
-    with open("./data_pulling/onchain/ABI.yaml", 'r') as f:
-        ABI_dict = yaml.full_load(f)
-    
-    chains: list[str] = []
+async def get_total_supply_each_chain(coin_chain_info:dict, ABI_dict: dict) -> dict[str, float]:    
+    chains: list[str] = coin_chain_info.keys()
     coros: list[asyncio.Future] = []
 
     for chain, cfg in coin_chain_info.items():
         # EVM 기반 체인 처리 - Ethereum, BSC, Arbitrum, Base
         if cfg['type'] == 'evm':
-            chains.append(chain)
             coros.append(evm.get_total_supply(chain, cfg, ABI_dict["ERC20"]))
         elif cfg['type'] == 'tron':
-            chains.append(chain)
             coros.append(tron.get_total_supply(chain, cfg))
         elif cfg['type'] == 'solana':
-            chains.append(chain)
             coros.append(solana.get_total_supply(chain, cfg))
         elif cfg['type'] == 'sui':
-            chains.append(chain)
             coros.append(sui.get_total_supply(chain, cfg))
-        # else:
-        #     raise NotImplementedError(f"Unsupported chain type: {cfg['type']}")
+        else:
+            raise NotImplementedError(f"Unsupported chain type: {cfg['type']}")
     
     # 병렬 실행으로 성능 향상
     supplies = await asyncio.gather(*coros)
@@ -53,6 +43,10 @@ async def get_total_supply_each_chain(stablecoin: str) -> dict[str, float]:
 
 
 async def get_onchain_data(stablecoin: str) -> OnChainData:
-    chain_token_dict = await get_total_supply_each_chain(stablecoin)
+    with open("./data_pulling/onchain/chain_config.yaml", 'r') as f:
+        coin_chain_info:dict = yaml.full_load(f)[stablecoin]
+    with open("./data_pulling/onchain/ABI.yaml", 'r') as f:
+        ABI_dict = yaml.full_load(f)
+    chain_token_dict = await get_total_supply_each_chain(coin_chain_info=coin_chain_info, ABI_dict=ABI_dict)
     outstanding_token = sum(chain_token_dict.values())
 

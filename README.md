@@ -5,7 +5,7 @@ Dockerfile is given in this project.
 
 If you want to build your custom images, use following docker command.
 ```bash
-docker buildx build --env-file .env -t <your_repository>:(tag) --push .
+docker buildx build -t <your_repository>:(tag) --push .
 ```
 ## Mounting Directory
 This project leverages local ollama engine, which results in high overhead.
@@ -18,6 +18,19 @@ To make correct directory in your system, use 'touch_mount_dir.sh' in this proje
 ```
 ## Claude Desktop
 This project leverages claude desktop's MCP client for default.
+```json
+"Stablecoin Risk Analyzer": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--env-file", "/Users/minuk-0815/Trading/RunFromRun/.env",
+        "-v",
+        "/Users/minuk-0815/rfr_results",
+        "-i",
+        "minuk0815/sentinelx:0.0.34"
+      ]
+    }
+```
 
 ### Configuration
 To use pdf result caching logic in this.

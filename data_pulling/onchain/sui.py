@@ -1,4 +1,4 @@
-from common.settings import API_KEYS, API_URLS, CHAIN_RPC_URLS
+from common.settings import CHAIN_RPC_URLS
 import httpx
 # https://docs.sui.io/sui-api-ref#suix_getallbalances
 

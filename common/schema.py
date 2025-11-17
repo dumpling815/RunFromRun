@@ -162,7 +162,7 @@ class CoinData(BaseModel):
     onchain_data: OnChainData
 
 class Index(BaseModel):
-    name : str = Field(..., pattern="^[a-z]*$", min_length=3, max_length=3)
+    name : str = Field(..., pattern="^[A-Z]*$", min_length=3, max_length=4)
     value: float = Field(..., ge=0, le=100, description="Index value between 0 and 100")
     threshold: float = Field(..., ge=0, le=100, description="Threshold value between 0 and 100")
     def threshold_check(self) -> bool:

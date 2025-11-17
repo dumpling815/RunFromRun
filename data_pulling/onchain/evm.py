@@ -1,6 +1,5 @@
-from common.settings import API_KEYS, API_URLS, CHAIN_RPC_URLS
+from common.settings import CHAIN_RPC_URLS
 from web3 import AsyncWeb3
-
 
 async def get_total_supply(chain: str, cfg: dict, ERC20_ABI: list) -> float:
     rpc_url = getattr(CHAIN_RPC_URLS,chain.upper())
@@ -16,3 +15,5 @@ async def get_total_supply(chain: str, cfg: dict, ERC20_ABI: list) -> float:
         return total_supply
     finally:
         await w3.provider.disconnect()
+
+
