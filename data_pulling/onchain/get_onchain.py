@@ -1,7 +1,7 @@
 # For getting onchain data from API
 from common.settings import API_KEYS, API_URLS, CHAIN_RPC_URLS
 from common.schema import OnChainData
-from data_pulling.onchain import evm, tron, solana, sui
+from data_pulling.onchain import evm, tron, solana, sui, coingecko_api
 import asyncio, yaml, logging
 
 # Target Chain: Ethereum, Solana, Tron, Arbitrum, Base, BSC, SUI, 
@@ -54,10 +54,12 @@ async def get_onchain_data(stablecoin: str) -> OnChainData:
         ABI_dict = yaml.full_load(f)
     chain_token_dict = await get_total_supply_each_chain(coin_chain_info=coin_chain_info, ABI_dict=ABI_dict)
     outstanding_token = sum(chain_token_dict.values())
+    shifting_data = coingecko_api.historical_supplies_charts_by_coin(stablecoin=stablecoin)
 
     # DEBUG
     return OnChainData(
         outstanding_token=outstanding_token,
+        shifting_data=shifting_data,
         CEX_flow_in=10000000,
         CEX_flow_out=10000000,
         liquidity_pool_size=1000,

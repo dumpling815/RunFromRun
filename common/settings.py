@@ -58,12 +58,8 @@ class Thresholds(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="THRESHOLD_", env_file= "../.env", env_file_encoding= "utf-8", extra="ignore") #[DEBUG] for development purpose
     FRRS: float
     OHS: float
-    TRS: list[float] | str
+    TRS: float      # 임계값은 모두 두 자리 수 정수로 설정 => 소수점으로 임계값이 두 가지인 경우를 커버할 수 있음
 
-    def post_process(self):
-        if isinstance(self.TRS, str):
-            self.TRS = parse_from_string_env(self.TRS, is_num=True)
-        return self
 
 class OllamaSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="OLLAMA_", env_file= "../.env", env_file_encoding= "utf-8", extra="ignore") #[DEBUG] for development purpose

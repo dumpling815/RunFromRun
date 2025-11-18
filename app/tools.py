@@ -23,7 +23,7 @@ async def _preprocess(id:str, report_pdf_url: str, stablecoin: str) -> CoinData:
 def _calculate_indices(coin_data: CoinData) -> Indices:
     """Calculate OHS, RCR, RQS indices."""
     FRRS_index: Index = calculator.calculate_FRRS(coin_data=coin_data)
-    OHS_index: Index = calculator.calculate_OHS(coin_data=coin_data)
+    OHS_index: Index = calculator.calculate_OHS(onchain_data=coin_data.onchain_data)
     result_indices: Indices = calculator.calculate_TRS(FRRS=FRRS_index,OHS=OHS_index)
     return result_indices
 

@@ -6,33 +6,33 @@ from common.settings import AVAILABLE
 class Asset(BaseModel):
     tier: Literal[0, 1, 2, 3, 4, 5] = Field(..., frozen=True) # 0 is for total amount
     qls_score: float = Field(..., ge=0, le=1, frozen=True)
-    amount: float | None = Field(...,) # US dollar amount (부채의 경우 음수로 표기되는 경우도 있으므로 ge=0 삭제)
-    ratio: float | None = Field(..., ge=0, le=100)
+    amount: float = Field(...,) # US dollar amount (부채의 경우 음수로 표기되는 경우도 있으므로 ge=0 삭제)
+    ratio: float = Field(..., ge=0, le=100)
 
 class AssetTable(BaseModel):
     # Tier 1 Assets
-    cash_bank_deposits: Asset = Asset(tier=1, qls_score=1.0, amount=None, ratio=None)
-    us_treasury_bills: Asset = Asset(tier=1, qls_score=1.0, amount=None, ratio=None)
-    gov_mmf: Asset = Asset(tier=1, qls_score=0.95, amount=None, ratio=None)
-    other_deposits: Asset = Asset(tier=1, qls_score=0.95, amount=None, ratio=None) 
+    cash_bank_deposits: Asset = Asset(tier=1, qls_score=1.0, amount=0.0, ratio=0.0)
+    us_treasury_bills: Asset = Asset(tier=1, qls_score=1.0, amount=0.0, ratio=0.0)
+    gov_mmf: Asset = Asset(tier=1, qls_score=0.95, amount=0.0, ratio=0.0)
+    other_deposits: Asset = Asset(tier=1, qls_score=0.95, amount=0.0, ratio=0.0) 
     # Tier 2 Assets
-    repo_overnight_term: Asset = Asset(tier=2, qls_score=0.9, amount=None, ratio=None)
-    non_us_treasury_bills: Asset = Asset(tier=2, qls_score=0.85, amount=None, ratio=None)
-    us_treasury_other_notes_bonds: Asset = Asset(tier=2, qls_score=0.8, amount=None, ratio=None)
+    repo_overnight_term: Asset = Asset(tier=2, qls_score=0.9, amount=0.0, ratio=0.0)
+    non_us_treasury_bills: Asset = Asset(tier=2, qls_score=0.85, amount=0.0, ratio=0.0)
+    us_treasury_other_notes_bonds: Asset = Asset(tier=2, qls_score=0.8, amount=0.0, ratio=0.0)
     # Tier 3 Assets
-    corporate_bonds: Asset = Asset(tier=3, qls_score=0.7, amount=None, ratio=None)
-    precious_metals: Asset = Asset(tier=3, qls_score=0.6, amount=None, ratio=None)
-    digital_assets: Asset = Asset( tier=3, qls_score=0.4, amount=None, ratio=None)
+    corporate_bonds: Asset = Asset(tier=3, qls_score=0.7, amount=0.0, ratio=0.0)
+    precious_metals: Asset = Asset(tier=3, qls_score=0.6, amount=0.0, ratio=0.0)
+    digital_assets: Asset = Asset( tier=3, qls_score=0.4, amount=0.0, ratio=0.0)
     # Tier 4 Assets 
-    secured_loans: Asset = Asset(tier=4, qls_score=0.2, amount=None, ratio=None)
-    other_investments: Asset = Asset(tier=4, qls_score=0.1, amount=None, ratio=None)
-    custodial_concentrated_asset: Asset = Asset(tier=4, qls_score=0.0, amount=None, ratio=None)
+    secured_loans: Asset = Asset(tier=4, qls_score=0.2, amount=0.0, ratio=0.0)
+    other_investments: Asset = Asset(tier=4, qls_score=0.1, amount=0.0, ratio=0.0)
+    custodial_concentrated_asset: Asset = Asset(tier=4, qls_score=0.0, amount=0.0, ratio=0.0)
     # Correction Value
     # LLM Voting으로 총액이 산출된 후, 자산별 합계가 총액과 일치하지 않는 경우 이를 보정하기 위한 항목.
     # 1 - correction_value.ratio를 신뢰도 지표로 사용할 수 있음 (보정치로 계산된 비율이 높다 => 신뢰도가 낮다)
-    correction_value: Asset = Asset(tier=5, qls_score=0.0, amount=None, ratio=None)
+    correction_value: Asset = Asset(tier=5, qls_score=0.0, amount=0.0, ratio=0.0)
     # Total Amount
-    total: Asset = Asset(tier=0, qls_score=0.0, amount=None, ratio=100)
+    total: Asset = Asset(tier=0, qls_score=0.0, amount=0.0, ratio=100)
 
     # CUSIP이 공개되었는지 여부
     cusip_appearance: bool = False
@@ -148,6 +148,7 @@ class AmountsOnly(BaseModel):
 
 class OnChainData(BaseModel):
     outstanding_token: float = Field(..., ge=0)
+    shifting_data: dict[list] = Field(..., description="Changes in price, market cap, total volume.(30 Days default)")
     CEX_flow_in: float = Field(..., ge=0)
     CEX_flow_out: float = Field(..., ge=0)
     liquidity_pool_size: float = Field(..., ge=0) # liquidity pool depth
