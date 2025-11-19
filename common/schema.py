@@ -38,6 +38,7 @@ class AssetTable(BaseModel):
     cusip_appearance: bool = False
     # PDF hash : 분석한 pdf의 hash 결과
     pdf_hash: str = Field(..., description="Downloaded PDF file hash (e.g., sha256). Same hash => same report.")
+    pdf_analysis_time: datetime = Field(..., description="PDF analysis time.")
 
     # Pretty-printing helpers and __str__ override
     _FIELD_ORDER = [
@@ -134,7 +135,7 @@ class AmountsOnly(BaseModel):
     total: float = Field(..., ge=0)
 
     def to_asset_table(self, cusip_appearance: bool, pdf_hash: str) -> AssetTable:
-        asset_table = AssetTable(cusip_appearance=cusip_appearance, pdf_hash=pdf_hash)
+        asset_table = AssetTable(cusip_appearance=cusip_appearance, pdf_hash=pdf_hash, pdf_analysis_time=datetime.now())
         cumulative = 0.0
         for field_name, value in self.model_dump().items():
             if field_name != "total" and value is not None:
