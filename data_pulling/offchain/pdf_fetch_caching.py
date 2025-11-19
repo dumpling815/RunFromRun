@@ -8,7 +8,7 @@ from hashlib import sha256
 from urllib.parse import urlparse
 
 BASE_DIR = Path(__file__).resolve().parent
-PDF_POOL_DIRECTORY = BASE_DIR / "pdfs"
+PDF_POOL_DIRECTORY = BASE_DIR / "pdf"
 PDF_POOL_DIRECTORY.mkdir(parents=True, exist_ok=True)
 
 logger = logging.getLogger("RunFromRun.Analyze.Offchain.PDF_Fetch")

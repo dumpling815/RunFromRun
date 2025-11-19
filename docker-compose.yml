@@ -18,7 +18,7 @@ services:
     container_name: "ollama"
     volumes:
       - /Users/minuk-0815/.ollama:/root/.ollama
-    # GPU 사용시 다음 줄의 주석 처리를 제거 (NVIDIA toolkit)
+    # GPU 사용시 주석 제거 (NVIDIA toolkit)
     # deploy:
     #   resources:
     #     reservations:

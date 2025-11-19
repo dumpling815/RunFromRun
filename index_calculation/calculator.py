@@ -4,7 +4,6 @@ import numpy as np
 import logging
 
 logger = logging.getLogger("RunFromRun.Analyze.Calculation")
-logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.DEBUG)
 
 def _calculate_RQS(asset_table: AssetTable) -> float:
@@ -37,7 +36,7 @@ def _calculate_EFPS(shifting_data) -> float:
         circulation_shift_list.append((shifting_data['market_caps'][t+1][1] / shifting_data['prices'][t+1][1]) - (shifting_data['market_caps'][t][1] / shifting_data['prices'][t][1]))
     
     simple_moving_average = sum(circulation_shift_list) / len(circulation_shift_list)
-    standard_deviation = np.sqrt(sum((variates - circulation_shift_list)**2 for variates in circulation_shift_list) / len(circulation_shift_list))
+    standard_deviation = np.sqrt(sum((variates - simple_moving_average)**2 for variates in circulation_shift_list) / len(circulation_shift_list))
 
     z_score = ((circulation_shift_list[-1] - circulation_shift_list[-2]) - simple_moving_average) / standard_deviation
     z_clipped = max(-2.0,min(3.0,z_score))
@@ -48,6 +47,24 @@ def _calculate_EFPS(shifting_data) -> float:
         EFPS = max(0,min(100,80 - (z_clipped * 80 / 3)))
     logger.info("EFPS Calculation Completed")
     return EFPS
+
+def _calculate_HCR(supply_per_chain:dict[str,float], holder_info_per_chain:dict[str,dict]) -> float:
+    total_supply = sum(supply_per_chain.values()) 
+    if 'tron' in supply_per_chain: 
+        total_supply - supply_per_chain['tron']
+    
+    ratio_dict = {chain: supply_per_chain[chain] / total_supply for chain in holder_info_per_chain.keys()}
+    HCR = 0
+    for chain in ratio_dict.keys():
+        C_50 = sum(holder_info_per_chain['distribution_percentage'].values)
+        if C_50 >= 0 and C_50 <= 30:
+            HCR += (100 * C_50 - 150) * ratio_dict[chain]
+        elif C_50 > 30 and C_50 <= 60:
+            HCR += (100 - C_50 / 1.5) * ratio_dict[chain]
+        else: # C_50 > 60. 위험구간
+            HCR += (150 - 1.5 * C_50) * ratio_dict[chain]
+    
+    return HCR
 
 def calculate_OHS(onchain_data: OnChainData) -> Index:
     logger.info("OHS Calculation Initialized")

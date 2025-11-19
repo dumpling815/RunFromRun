@@ -146,15 +146,11 @@ class AmountsOnly(BaseModel):
         asset_table.total.amount=self.total
         return asset_table
 
-class OnChainData(BaseModel):
-    outstanding_token: float = Field(..., ge=0)
-    shifting_data: dict[list] = Field(..., description="Changes in price, market cap, total volume.(30 Days default)")
-    CEX_flow_in: float = Field(..., ge=0)
-    CEX_flow_out: float = Field(..., ge=0)
-    liquidity_pool_size: float = Field(..., ge=0) # liquidity pool depth
-    whale_asset_change: float = Field(..., description="Change in whale assets (in USD)")
-    mint_burn_ratio: float = Field(..., ge=0, description="Ratio of minting to burning activities")
-    TVL: float = Field(..., ge=0, description="Total Value Locked in USD")
+class OnChainData(BaseModel): # API 변경 가능성에 따른 클래스 구조화 필요
+    supply_per_chain: dict[str,float] = Field(..., description="Given stablecoin's total supplies per chain. (Only supported chains available)")
+    variation_data: dict[str,list] = Field(..., description="Changes in price, market cap, total volume.(91 Days default)")
+    holder_info_per_chain: dict[str,dict] = Field(..., description="The portion value of Top k holders. Tron is not supported yet. Top 10, top 11-20, top 21-40 and rest information is given in solana chian. Top 10, top 11-30, top 31-50 and rest for other chain")
+    
     
 class CoinData(BaseModel):
     stablecoin_ticker: str = Field(..., pattern="^[A-Z]{3,5}$", description="Stablecoin symbol (3-5 uppercase letters)")

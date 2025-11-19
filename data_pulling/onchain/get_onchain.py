@@ -1,7 +1,7 @@
 # For getting onchain data from API
 from common.settings import API_KEYS, API_URLS, CHAIN_RPC_URLS
 from common.schema import OnChainData
-from data_pulling.onchain import evm, tron, solana, sui, coingecko_api
+from data_pulling.onchain import evm, tron, solana, sui, coingecko_api, DEX_simulate
 import asyncio, yaml, logging
 
 # Target Chain: Ethereum, Solana, Tron, Arbitrum, Base, BSC, SUI, 
@@ -21,7 +21,7 @@ logger = logging.getLogger("RunFromRun.Analyze.Onchain")
 logger.setLevel(logging.DEBUG)
 
 
-async def get_total_supply_each_chain(coin_chain_info:dict, ABI_dict: dict) -> dict[str, float]:    
+async def get_supply_each_chain(coin_chain_info:dict, ABI_dict: dict) -> dict[str, float]:    
     chains: list[str] = coin_chain_info.keys()
     coros: list[asyncio.Future] = []
 
@@ -49,22 +49,23 @@ async def get_total_supply_each_chain(coin_chain_info:dict, ABI_dict: dict) -> d
 
 async def get_onchain_data(stablecoin: str) -> OnChainData:
     with open("./data_pulling/onchain/chain_config.yaml", 'r') as f:
-        coin_chain_info:dict = yaml.full_load(f)[stablecoin]
+        coin_chain_info_all:dict = yaml.full_load(f)
     with open("./data_pulling/onchain/ABI.yaml", 'r') as f:
         ABI_dict = yaml.full_load(f)
-    chain_token_dict = await get_total_supply_each_chain(coin_chain_info=coin_chain_info, ABI_dict=ABI_dict)
-    outstanding_token = sum(chain_token_dict.values())
-    shifting_data = coingecko_api.historical_supplies_charts_by_coin(stablecoin=stablecoin)
+    
+
+    supply_per_chain_coro = get_supply_each_chain(coin_chain_info=coin_chain_info_all[stablecoin], ABI_dict=ABI_dict)
+    variation_coro = coingecko_api.historical_supplies_charts_by_coin(stablecoin=stablecoin)
+    holder_info_coro = coingecko_api.holder_concentration(stablecoin=stablecoin,coin_chain_info=coin_chain_info_all[stablecoin])
+    supply_per_chain, variation_data, holder_info_per_chain = await asyncio.gather(supply_per_chain_coro, variation_coro, holder_info_coro)
+    # DEX simulate의 경우는 위 두 가지 변수에 dependency가 있기 때문에 이후에 접근.
+    slippage = await DEX_simulate.DEX_aggregator_simulation(stablecoin=stablecoin,coin_chain_info_all=coin_chain_info_all)
+
 
     # DEBUG
     return OnChainData(
-        outstanding_token=outstanding_token,
-        shifting_data=shifting_data,
-        CEX_flow_in=10000000,
-        CEX_flow_out=10000000,
-        liquidity_pool_size=1000,
-        whale_asset_change=10000,
-        mint_burn_ratio=1.1,
-        TVL=1.0
+        supply_per_chain=supply_per_chain,
+        variation_data=variation_data,
+        holder_info_per_chain=holder_info_per_chain,
     )
 

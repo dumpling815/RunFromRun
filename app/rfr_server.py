@@ -12,6 +12,16 @@ mcp = FastMCP(
 logger = logging.getLogger("RFR SERVER")
 logger.setLevel(logging.DEBUG)
 
+stream_handler = logging.StreamHandler()
+file_handler = logging.FileHandler('rfr.log')
+
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+stream_handler.setFormatter(formatter)
+file_handler.setFormatter(formatter)
+
+logger.addHandler(stream_handler)
+logger.addHandler(file_handler)
+
 @mcp.tool(
         name="RunFromRun-MCP-SERVER",
         description="Analyze Stable Coin Risk with given Report PDF."

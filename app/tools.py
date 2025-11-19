@@ -49,9 +49,9 @@ async def analyze(request: RfRRequest) -> RfRResponse:
         risk_result: RiskResult = _alarm_and_complete(coin_data=coin_data,indices=indices)
         logger.debug("All Mision COMPLETED")
     except Exception as e:
-        logger.error(f"Error during analyzing {e}")
+        logger.error(f"Error during analyzing: {e}")
         return RfRResponse(
-            id="MCP Server Error",
+            id="Error",
             err_status=str(e),
             stablecoin_ticker = request.stablecoin_ticker,
             provenance=request.provenance,

@@ -97,7 +97,7 @@ class ChainRPCURLs(BaseSettings):
 
 # Instance Initiate
 AVAILABLE = Available().post_process()
-THRESHOLDS = Thresholds().post_process()
+THRESHOLDS = Thresholds()
 OLLAMASETTINGS = OllamaSettings().post_process()   
 API_KEYS = APIKeys()
 API_URLS = APIURLs()
