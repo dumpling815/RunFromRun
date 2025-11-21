@@ -35,7 +35,7 @@ async def holder_concentration(stablecoin: str, coin_chain_info: dict) -> dict:
     return results
 
 async def historical_supplies_charts_by_coin(stablecoin: str) -> dict[list]:
-    DAYS = '91' # 최근 7일간의 데이터
+    DAYS = '31' # 최근 7일간의 데이터
     headers = {"x-cg-demo-api-key": API_KEYS.COINGECKO}
     querystring = {"vs_currency":"usd","days":DAYS,"interval":"daily","precision":"full"}
     

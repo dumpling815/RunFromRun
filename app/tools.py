@@ -24,7 +24,7 @@ def _calculate_indices(coin_data: CoinData) -> Indices:
     """Calculate OHS, RCR, RQS indices."""
     FRRS_index: Index = calculator.calculate_FRRS(coin_data=coin_data)
     OHS_index: Index = calculator.calculate_OHS(onchain_data=coin_data.onchain_data)
-    result_indices: Indices = calculator.calculate_TRS(FRRS=FRRS_index,OHS=OHS_index)
+    result_indices: Indices = calculator.calculate_TRS(FRRS=FRRS_index,OHS=OHS_index,coin_data=coin_data)
     return result_indices
 
 def _alarm_and_complete(coin_data: CoinData, indices: Indices):

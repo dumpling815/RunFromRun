@@ -1,5 +1,6 @@
 from common.schema import Index, Indices, AssetTable, Asset, OnChainData, CoinData
 from common.settings import THRESHOLDS
+from datetime import datetime
 import numpy as np
 import logging
 
@@ -67,17 +68,18 @@ def _calculate_HCR(supply_per_chain:dict[str,float], holder_info_per_chain:dict[
     return HCR
 
 def calculate_OHS(onchain_data: OnChainData) -> Index:
-    logger.info("OHS Calculation Initialized")
+    logger.info("OHS Ca~~lculation Initialized")
     EFPS : float = _calculate_EFPS(onchain_data.shifting_data)
+    HCR : float = _calculate_HCR(supply_per_chain=onchain_data.supply_per_chain,holder_info_per_chain=onchain_data.holder_info_per_chain)
     # TODO: Not implemented yet.
     OHS = EFPS
 
     logger.info("OHS Calculation Completed")
     return Index(name='OHS', value=OHS, threshold=THRESHOLDS.OHS)
 
-def calculate_TRS(FRRS: Index, OHS: Index) -> Indices:
+def calculate_TRS(FRRS: Index, OHS: Index, coin_data: CoinData) -> Indices:
     logger.info("TRS Calculation Initialized")
+    time_delta = datetime.now() - coin_data.asset_table.pdf_analysis_time 
     TRS: Index = Index(name="TRS", value=0.7 * FRRS.value + 0.3 * OHS.value, threshold=THRESHOLDS.TRS)
     logger.info("TRS Calculation Completed")
     return Indices(FRRS=FRRS,OHS=OHS,TRS=TRS)
-    
