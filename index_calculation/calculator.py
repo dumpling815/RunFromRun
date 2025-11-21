@@ -79,7 +79,14 @@ def calculate_OHS(onchain_data: OnChainData) -> Index:
 
 def calculate_TRS(FRRS: Index, OHS: Index, coin_data: CoinData) -> Indices:
     logger.info("TRS Calculation Initialized")
-    time_delta = datetime.now() - coin_data.asset_table.pdf_analysis_time 
-    TRS: Index = Index(name="TRS", value=0.7 * FRRS.value + 0.3 * OHS.value, threshold=THRESHOLDS.TRS)
+    time_delta = datetime.now() - coin_data.asset_table.pdf_analysis_time
+    if time_delta.days <= 30:
+        offline_weight = 0.7 - time_delta.days / 150
+    elif time_delta.days <= 180 and time_delta.days > 30:
+        offline_weight = 0.5 - (time_delta.days - 30) / 300
+    else:
+        offline_weight = 0.0
+    
+    TRS: Index = Index(name="TRS", value=offline_weight * FRRS.value + (1-offline_weight) * OHS.value, threshold=THRESHOLDS.TRS)
     logger.info("TRS Calculation Completed")
     return Indices(FRRS=FRRS,OHS=OHS,TRS=TRS)
