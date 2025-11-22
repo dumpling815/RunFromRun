@@ -17,14 +17,14 @@ async def _call_contract(rpc_url: str, contract_address: str, function_selector:
 
 async def get_total_supply(chain: str, cfg: dict) -> float:
     rpc_url = getattr(CHAIN_RPC_URLS,chain.upper())
-    total_supply_dict: str = await _call_contract(rpc_url, cfg["contract"], "suix_getTotalSupply")
-    decimals_dict: str = await _call_contract(rpc_url, cfg["contract"], "suix_getCoinMetadata")
+    total_supply_dict: str = await _call_contract(rpc_url, cfg["contract_address"], "suix_getTotalSupply")
+    decimals_dict: str = await _call_contract(rpc_url, cfg["contract_address"], "suix_getCoinMetadata")
 
     try:
         total_supply_raw = int(total_supply_dict['result']['value'])
         decimals_raw = int(decimals_dict['result']['decimals'])
     except (KeyError, TypeError, ValueError) as e:
-        raise RuntimeError(f"Unexpected Sui total supply or decimals response for {cfg['contract']}: {total_supply_dict}, {decimals_dict}") from e
+        raise RuntimeError(f"Unexpected Sui total supply or decimals response for {cfg['contract_address']}: {total_supply_dict}, {decimals_dict}") from e
 
     total_supply = float(total_supply_raw) / (10 ** decimals_raw)
     return total_supply

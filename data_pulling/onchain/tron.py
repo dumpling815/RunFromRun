@@ -21,13 +21,13 @@ async def _call_contract(rpc_url: str, contract_address: str, function_selector:
 async def get_total_supply(chain: str, cfg: dict) -> float:
     rpc_url = getattr(CHAIN_RPC_URLS,chain.upper())
     endpoint = rpc_url.rstrip('/') + '/wallet/triggerconstantcontract'
-    total_supply_dict: dict = await _call_contract(endpoint, cfg["contract"], "totalSupply()")
-    decimals_dict: int = await _call_contract(endpoint, cfg["contract"], "decimals()")
+    total_supply_dict: dict = await _call_contract(endpoint, cfg["contract_address"], "totalSupply()")
+    decimals_dict: int = await _call_contract(endpoint, cfg["contract_address"], "decimals()")
     try:
         total_supply_raw = int(total_supply_dict['constant_result'][0],16)
         decimals_raw = int(decimals_dict['constant_result'][0],16)
     except (KeyError, TypeError, ValueError) as e:
-        raise RuntimeError(f"Unexpected Tron total supply or decimals response for {cfg['contract']}: {total_supply_dict}, {decimals_dict}") from e
+        raise RuntimeError(f"Unexpected Tron total supply or decimals response for {cfg['contract_address']}: {total_supply_dict}, {decimals_dict}") from e
     total_supply = float(total_supply_raw) / (10 ** decimals_raw)
 
     return total_supply

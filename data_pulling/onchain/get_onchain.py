@@ -52,20 +52,23 @@ async def get_onchain_data(stablecoin: str) -> OnChainData:
         coin_chain_info_all:dict = yaml.full_load(f)
     with open("./data_pulling/onchain/ABI.yaml", 'r') as f:
         ABI_dict = yaml.full_load(f)
-    
-
     supply_per_chain_coro = get_supply_each_chain(coin_chain_info=coin_chain_info_all[stablecoin], ABI_dict=ABI_dict)
     variation_coro = coingecko_api.historical_supplies_charts_by_coin(stablecoin=stablecoin)
-    holder_info_coro = coingecko_api.holder_concentration(stablecoin=stablecoin,coin_chain_info=coin_chain_info_all[stablecoin])
+    holder_info_coro = coingecko_api.holder_concentration(coin_chain_info=coin_chain_info_all[stablecoin])
     supply_per_chain, variation_data, holder_info_per_chain = await asyncio.gather(supply_per_chain_coro, variation_coro, holder_info_coro)
+    # supply_per_chain, holder_info_per_chain => dict[str, float] str: chain, float: 해당하는 값 
+    # variation_data는 dict[str,list] 형식임.
     # DEX simulate의 경우는 위 두 가지 변수에 dependency가 있기 때문에 이후에 접근.
-    slippage = await DEX_simulate.DEX_aggregator_simulation(stablecoin=stablecoin,coin_chain_info_all=coin_chain_info_all)
-
-
-    # DEBUG
+    
+    slippage_per_chain = await coingecko_api.stablecoin_DEX_aggregator_simulation(
+        stablecoin=stablecoin,
+        coin_chain_info_all=coin_chain_info_all, 
+        stress_test_value=sum(supply_per_chain.values()) * 0.0001
+    )
     return OnChainData(
         supply_per_chain=supply_per_chain,
         variation_data=variation_data,
         holder_info_per_chain=holder_info_per_chain,
+        slippage_per_chain=slippage_per_chain
     )
 

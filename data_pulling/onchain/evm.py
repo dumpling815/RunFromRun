@@ -6,7 +6,7 @@ async def get_total_supply(chain: str, cfg: dict, ERC20_ABI: list) -> float:
     w3 = AsyncWeb3(AsyncWeb3.AsyncHTTPProvider(rpc_url))
     try:
         contract = w3.eth.contract(
-            address=AsyncWeb3.to_checksum_address(cfg["contract"]),
+            address=AsyncWeb3.to_checksum_address(cfg["contract_address"]),
             abi=ERC20_ABI,
         )
         raw_supply = await contract.functions.totalSupply().call()
