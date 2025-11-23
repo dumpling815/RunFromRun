@@ -6,7 +6,7 @@ RunFromRun은 스테이블코인의 **오프체인 준비금(Reserve) 리스크*
 **FRRS / OHS / TRS**를 계산하는 **MCP(Model Context Protocol) 서버**입니다.
 
 이 서버는 Docker Compose를 통해 쉽게 배포되며, 기본적으로 로컬에서 실행되는 Ollama LLM을 사용해 PDF 표 추출 및 LLM voting을 수행합니다.  
-온체인 시장 데이터는 CoinGecko Pro API를 이용하여 최신 가격·시총·거래량 정보를 가져옵니다.
+온체인 시장 데이터는 CoinGecko Demo API를 이용하여 최신 가격·시총·거래량 정보를 가져옵니다.
 
 ---
 
@@ -50,7 +50,7 @@ RunFromRun은 스테이블코인의 **오프체인 준비금(Reserve) 리스크*
 
 아래는 사용자의 요청부터 최종 리스크 점수(`TRS`)를 계산하기까지의 전체 데이터 흐름 및 모델 아키텍처입니다.
 
-<img src="./images/architecture.png" alt="RunFromRun Architecture">
+<img src="./images/model_architecture.png" alt="RunFromRun Architecture">
 
 ---
 
