@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./images/icon.png" alt="RunFromRun Icon" width="240">
+  <img src="./images/icon.png" alt="RunFromRun Icon" width="360">
 </p>
 
 RunFromRun은 스테이블코인의 **오프체인 준비금(Reserve) 리스크**와 **온체인 시장/행동 리스크**를 통합해서  
