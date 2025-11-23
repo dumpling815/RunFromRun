@@ -17,8 +17,9 @@ RunFromRun은 스테이블코인의 **오프체인 준비금(Reserve) 리스크*
 2. PDF의 hash 값을 이용하여, 마운트 된 디렉토리에 기존에 캐시된 결과가 있는지 확인합니다.
 3. 만약 로그에 hash 값이 존재한다면, 캐시 디렉토리에서 AssetTable을 곧바로 가져옵니다.
 4. Camelot/Tabula를 이용해 표를 추출합니다.
-5. 여러 LLM 모델이 투표 방식으로 추출 데이터를 표준 스키마(`AssetTable`)로 정규화합니다.
-6. 합계가 맞지 않는 경우 `correction_value` 필드에 차이를 넣어 신뢰도를 보정합니다.
+5. 추출한 표를 여러 방식으로 가공합니다. (CUSIP 번호를 OPENFIGI를 통해 해석하는 과정도 포함합니다)
+6. 여러 LLM 모델이 투표 방식으로 추출 데이터를 표준 스키마(`AssetTable`)로 정규화합니다.
+7. 합계가 맞지 않는 경우 `correction_value` 필드에 차이를 넣어 신뢰도를 보정합니다.
 
 ### 2) 온체인 지표 수집
 * 체인별 **유통량(circulating supply)** 수집 및 합산  
@@ -153,6 +154,8 @@ cp .env.example .env
 
 ### Docker Compose 실행
 
+이 프로젝트에서는 기본적으로 Claude desktop이 client로 docker를 자동으로 띄우는 것을 가정합니다.
+
 컨테이너 실행:
 
 ```bash
@@ -203,6 +206,7 @@ Claude 설정 예시(JSON):
 “USDT 최신 준비금 보고서를 분석해서 FRRS/OHS/TRS를 계산해줘.
 보고서 URL은 여기야: https://example.com/tether_report.pdf”
 ```
+필요시 Claude desktop의 다른 url 추출 MCP 서버를 이용해서 전체 워크플로우 체인을 완성할 수 있습니다.
 
 위처럼 지시하면 MCP 서버가 자동으로 PDF를 분석하고 온체인 데이터를 수집해  
 FRRS, OHS, TRS를 계산한 뒤 결과와 경고 요약을 응답합니다.
@@ -304,6 +308,9 @@ MCP 서버를 위한 Docker 이미지 최신 태그는 아래와 같습니다:
 ```
 minuk0815/sentinelx:0.1.0
 ```
+
+기본적인 Dockerfile도 루트 디렉토리에 존재하기 때문에, Settings.py에 존재하는 값 혹은 다른 .py 파일을 수정하여 직접 이미지를 빌드하여 사용해도 무방합니다.
+단, 대부분의 클래스가 pydantic 모델을 상속하므로, 이 부분을 유의하여 스키마를 수정해야 합니다.
 
 ---
 
