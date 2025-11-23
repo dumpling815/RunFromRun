@@ -2,7 +2,7 @@ version: '3.8'
 services:
   # RfR MCP Server 서비스 정의 (Risk Analysis Engine)
   rfr_mcp_server:
-    image: "minuk0815/sentinelx:0.0.40" # 버전 태그가 맞는지 반드시 확인
+    image: "minuk0815/sentinelx:0.1.0" # 버전 태그가 맞는지 반드시 확인
     container_name: "rfr_mcp_server"
     ports:
       - "8000:8000"

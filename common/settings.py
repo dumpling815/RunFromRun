@@ -58,8 +58,12 @@ class Thresholds(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="THRESHOLD_", env_file= "../.env", env_file_encoding= "utf-8", extra="ignore") #[DEBUG] for development purpose
     FRRS: float
     OHS: float
-    TRS: float      # 임계값은 모두 두 자리 수 정수로 설정 => 소수점으로 임계값이 두 가지인 경우를 커버할 수 있음
-
+    TRS: str | list[float]   # 임계값은 모두 두 자리 수 정수로 설정 => 소수점으로 임계값이 두 가지인 경우를 커버할 수 있음
+    
+    def post_process(self):
+        if isinstance(self.TRS, str):
+            self.MODELS = parse_from_string_env(self.MODELS, is_num=True)
+        return self
 
 class OllamaSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="OLLAMA_", env_file= "../.env", env_file_encoding= "utf-8", extra="ignore") #[DEBUG] for development purpose
@@ -105,6 +109,8 @@ CHAIN_RPC_URLS = ChainRPCURLs()
 CAMELOT_MODE:dict = parse_from_string_env(value=os.environ.get("CAMELOT_MODE"), is_num=False)
 LLM_OPTION:Literal["local","api"] = os.environ.get("LLM_OPTION")
 MOUNTED_DIR:Path = Path(os.environ.get("MOUNTED_DIR"))
+SLACK_WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_URL")
+EMAIL_HOSDT = os.environ.get("EMAIL_HOST")
 
 SYSTEM_PROMPT = """
     You are a **financial data extraction agent**. 

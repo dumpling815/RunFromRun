@@ -149,34 +149,131 @@ class AmountsOnly(BaseModel):
 
 class OnChainData(BaseModel): # API 변경 가능성에 따른 클래스 구조화 필요
     supply_per_chain: dict[str,float] = Field(..., description="Given stablecoin's total supplies per chain. (Only supported chains available)")
-    variation_data: dict[str,list] = Field(..., description="Changes in price, market cap, total volume.(91 Days default)")
+    variation_data: dict[str,list] = Field(..., description="Changes in price, market cap, total volume.(31 Days default)")
     holder_info_per_chain: dict[str,dict] = Field(..., description="The portion value of Top k holders. Tron is not supported yet. Top 10, top 11-20, top 21-40 and rest information is given in solana chian. Top 10, top 11-30, top 31-50 and rest for other chain")
-    slippage_per_chain: dict[str, float] = Field(..., description="Slippage percentage per chain from DEX simulation.")
+    slippage_per_chain: dict[str, float] = Field(..., description="Slippage percentage per chain from DEX simulation. Note that this only simulates in CEX")
     
 class CoinData(BaseModel):
     stablecoin_ticker: str = Field(..., pattern="^[A-Z]{3,5}$", description="Stablecoin symbol (3-5 uppercase letters)")
-    description: str | None = None
+    description: str = """
+            CoinData represents the full input/output bundle for stablecoin risk analysis.
+            It contains two major parts:
+
+            1) asset_table (Off-chain reserve data, parsed from issuer PDF):
+            AssetTable is a standardized reserve allocation template. Each field is an Asset with:
+            - tier: liquidity/quality tier (0=total, 1=highest liquidity → 4=lowest, 5=correction)
+            - qls_score: pre-defined Quality & Liquidity Score in [0,1]
+            - amount: USD-denominated asset value
+            - ratio: portfolio share in percent [0,100]
+
+            Tiers and fields:
+            Tier 1 (highest quality liquid assets):
+                • cash_bank_deposits: cash & regulated bank deposits
+                • us_treasury_bills: U.S. Treasury Bills (short-term)
+                • gov_mmf: government money market funds
+                • other_deposits: other highly liquid deposits (e.g., T+1 time deposits)
+
+            Tier 2 (high-quality liquid assets):
+                • repo_overnight_term: repo agreements (overnight/term)
+                • non_us_treasury_bills: non-U.S. sovereign T-bills (G7 etc.)
+                • us_treasury_other_notes_bonds: longer-duration U.S. Treasury notes/bonds
+
+            Tier 3 (marketable but riskier assets):
+                • corporate_bonds: corporate bonds
+                • precious_metals: precious metals
+                • digital_assets: crypto assets (e.g., BTC)
+
+            Tier 4 (illiquid / opaque / high-risk items):
+                • secured_loans: secured loans
+                • other_investments: other investments with limited disclosure
+                • custodial_concentrated_asset: custodial concentration–related risk items
+
+            Correction and Total:
+                • correction_value (tier=5): reconciliation bucket added after LLM voting.
+                If the sum of parsed assets differs from total, the gap is stored here.
+                A higher correction_value.ratio indicates lower extraction confidence.
+                • total (tier=0): total reserve amount in USD (ground truth from report / voting).
+
+            Meta fields:
+                • cusip_appearance: whether CUSIP identifiers are disclosed.
+                This is used for the Transparency Adjustment score:
+                CUSIP disclosed → higher transparency score, not disclosed → penalty.
+                • pdf_hash: hash of the analyzed PDF (same hash => same report).
+                • pdf_analysis_time: timestamp of the analysis, used to time-decay the
+                offline vs on-chain weight in the final total risk score.
+
+            2) onchain_data (Market/behavioral risk signals from chains):
+            OnChainData aggregates chain-level distribution and market stress indicators.
+            - supply_per_chain: {chain -> circulating supply on that chain in USD terms}.
+                The total supply is obtained by summing supplies across:
+                ethereum, base, bsc, arbitrum, solana, tron, sui,
+                fetched directly via each chain’s node RPC / explorer endpoint.
+            - variation_data: time series of prices, market_caps, total_volumes
+                (each series is a list of [timestamp, value] pairs; 31-day window by default).
+            - holder_info_per_chain: per-chain holder concentration breakdown.
+                Bucket definitions can vary slightly by chain (e.g., Solana vs EVM chains),
+                but all represent the share of supply held by top holders and the remaining rest.
+            - slippage_per_chain: expected slippage percentage per chain from DEX sell simulation
+                for a relative swap size tied to total supply.
+
+            Together, CoinData is used to compute FRRS (reserve risk), OHS (on-chain health),
+            and TRS (total risk score with time-decayed offline weight).
+            """
     asset_table: AssetTable
     onchain_data: OnChainData
 
 class Index(BaseModel):
     name : str = Field(..., pattern="^[A-Z]*$", min_length=3, max_length=4)
     value: float = Field(..., ge=0, le=100, description="Index value between 0 and 100")
-    threshold: float = Field(..., ge=0, le=100, description="Threshold value between 0 and 100")
+    threshold: float | list[float]
+    description: str = Field(..., description="Description of the index")
     def threshold_check(self) -> bool:
         """Check if the index value exceeds the threshold."""
         return self.value > self.threshold
+    
+    def __str__(self) -> str:
+        thr = self.threshold
+        if isinstance(thr, list):
+            thr_str = ", ".join(str(t) for t in thr)
+        else:
+            thr_str = str(thr)
+        return (
+            f"{self.name}: {self.value:.2f} / 100 (threshold={thr_str})\n"
+            f"  - {self.description.strip()}"
+        )
+
+
 
 class Indices(BaseModel):
     index_list: list[Literal['FRRS', 'OHS', 'TRS']] = ['FRRS', 'OHS', 'TRS']
     FRRS: Index
     OHS: Index
     TRS: Index
+    
+    def __str__(self) -> str:
+        parts = []
+        for key in self.index_list:
+            idx: Index = getattr(self, key)
+            parts.append(str(idx))
+        return "\n".join(parts)
+
 
 class RiskResult(BaseModel):
     coin_data: CoinData
     indices: Indices
     analysis: str
+
+    def __str__(self) -> str:
+        header = f"RiskResult for {self.coin_data.stablecoin_ticker}" 
+        indices_str = str(self.indices)
+        analysis_str = (self.analysis or "").strip()
+        return (
+            f"{header}\n"
+            f"{'=' * len(header)}\n"
+            f"{indices_str}\n\n"
+            f"Analysis:\n{analysis_str}"
+        )
+
 
 class Provenance(BaseModel):
         report_issuer: str = Field(..., pattern=r"^[\w -]{3,50}$", description="Issuer of the report (3-50 characters)")
@@ -207,3 +304,31 @@ class RfRResponse(BaseModel):
 
     risk_result: RiskResult | None = None
     mcp_version: str = Field(..., pattern=r"^v\d+\.\d+\.\d+$", description="MCP version in semantic versioning format")
+
+    def __str__(self) -> str:
+        # Error response
+        if self.err_status is not None or self.risk_result is None:
+            return (
+                f"RfRResponse (ERROR)\n"
+                f"- id: {self.id}\n"
+                f"- stablecoin: {self.stablecoin_ticker}\n"
+                f"- issuer: {self.provenance.report_issuer}\n"
+                f"- report: {self.provenance.report_pdf_url}\n"
+                f"- mcp_version: {self.mcp_version}\n"
+                f"- err_status: {self.err_status}"
+            )
+
+        # Success response
+        eval_time = self.evaluation_time.isoformat(sep=' ', timespec='seconds')
+        prov = self.provenance
+        header = f"RfRResponse for {self.stablecoin_ticker}" 
+        return (
+            f"{header}\n"
+            f"{'=' * len(header)}\n"
+            f"id: {self.id}\n"
+            f"evaluation_time: {eval_time}\n"
+            f"issuer: {prov.report_issuer}\n"
+            f"report_pdf_url: {prov.report_pdf_url}\n"
+            f"mcp_version: {self.mcp_version}\n\n"
+            f"{self.risk_result}"
+        )

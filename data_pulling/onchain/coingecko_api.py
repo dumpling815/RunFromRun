@@ -17,7 +17,7 @@ coingecko_token_id_dict: dict ={
 coingecko_network_id_dict: dict = {
     "ethereum" : "eth",
     "binance_smart_chain" : "bsc",
-    "arbirtum_one" : "arbitrum",
+    "arbitrum_one" : "arbitrum",
     "base" : "base",
     "solana" : "solana",
     "tron" : "tron",

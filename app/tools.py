@@ -1,6 +1,7 @@
 from common.schema import AssetTable, OnChainData, CoinData, Index, Indices, RiskResult, RfRRequest, RfRResponse
 from data_pulling.offchain.pdf_analysis import analyze_pdf
 from data_pulling.onchain.get_onchain import get_onchain_data
+from summary.threshold_check import check_thresholds_and_alarm
 from index_calculation import calculator
 from datetime import datetime
 import asyncio, logging
@@ -28,12 +29,11 @@ def _calculate_indices(coin_data: CoinData) -> Indices:
     return result_indices
 
 def _alarm_and_complete(coin_data: CoinData, indices: Indices):
-    # TODO analysis 문장 완성
-    # TODO alarming 구현
+    analysis = "Summary:\n" + check_thresholds_and_alarm(indices=indices)
     risk_result = RiskResult(
         coin_data=coin_data,
         indices=indices,
-        analysis="Caution Required"
+        analysis=analysis
     )
     return risk_result
 
