@@ -14,14 +14,16 @@ RunFromRun은 스테이블코인의 **오프체인 준비금(Reserve) 리스크*
 
 ### 1) 오프체인 준비금 분석 (PDF → AssetTable)
 1. 발행사 PDF 보고서를 다운로드합니다.
-2. Camelot/Tabula를 이용해 표를 추출합니다.
-3. 여러 LLM 모델이 투표 방식으로 추출 데이터를 표준 스키마(`AssetTable`)로 정규화합니다.
-4. 합계가 맞지 않는 경우 `correction_value` 필드에 차이를 넣어 신뢰도를 보정합니다.
+2. PDF의 hash 값을 이용하여, 마운트 된 디렉토리에 기존에 캐시된 결과가 있는지 확인합니다.
+3. 만약 로그에 hash 값이 존재한다면, 캐시 디렉토리에서 AssetTable을 곧바로 가져옵니다.
+4. Camelot/Tabula를 이용해 표를 추출합니다.
+5. 여러 LLM 모델이 투표 방식으로 추출 데이터를 표준 스키마(`AssetTable`)로 정규화합니다.
+6. 합계가 맞지 않는 경우 `correction_value` 필드에 차이를 넣어 신뢰도를 보정합니다.
 
 ### 2) 온체인 지표 수집
 * 체인별 **유통량(circulating supply)** 수집 및 합산  
   (지원 체인: `ethereum`, `base`, `binance‑smart‑chain`, `arbitrum-one`, `solana`, `tron`, `sui`)
-* 가격/시총/거래량 시계열(최근 91일)
+* 가격/시총/거래량 시계열(최근 31일)
 * 고래 집중도(holder distribution)
 * DEX StableSwap 기반 슬리피지 시뮬레이션(뉴턴–랩슨 수치해법으로 계산)
 
@@ -30,12 +32,12 @@ RunFromRun은 스테이블코인의 **오프체인 준비금(Reserve) 리스크*
   - `RQS` 준비금 품질 점수 (자산 비중 × 유동성 점수)  
   - `TA_score` 투명성 보정 (CUSIP 공개 여부에 따른 가중치)  
   - `SA_score` 안정성 보정 (과담보율 로그 스케일)  
-  - `Collateralization Ratio` = 준비금 총액 ÷ 총 유통량
+  - `Collateralization Ratio` = 준비금 총액 / 총 발행량 비율
 
 * **OHS (On‑Chain Health Score)** – 온체인 시장/행동 리스크  
   - `PMCS` 1차시장 신뢰 (유통량 축소 이상치 검출)  
   - `HCR` 고래 집중도 리스크 (체인별 top‑50 지갑 집중도)  
-  - `SMLS` DEX 유동성 (StableSwap 슬리피지, top‑20 풀에 해당 코인이 없으면 100% 슬리피지로 간주)
+  - `SMLS` DEX 유동성 (StableSwap 슬리피지, top‑20 풀에 해당 코인이 없으면 100% 슬리피지로 간주, DEX는 유동성이 부족한 경우 SMLS는 값이 튈 수도 있음)
 
 * **TRS (Total Risk Score)** – FRRS와 OHS를 시간 경과에 따라 가중 결합  
   - 최신 보고서는 FRRS 비중이 높고, 시간이 지날수록 OHS 비중을 높입니다.  
@@ -43,6 +45,7 @@ RunFromRun은 스테이블코인의 **오프체인 준비금(Reserve) 리스크*
 
 ### 4) Summary/Alarm 생성
 각 지수가 설정된 임계치를 넘거나 떨어질 때 자동으로 요약과 경고 메시지를 생성하여 `analysis` 필드에 저장합니다.
+만일 Slack webhook url이 제공되어 있는 경우, Slack으로 알림으로 보냅니다.
 
 ---
 
@@ -58,7 +61,7 @@ RunFromRun은 스테이블코인의 **오프체인 준비금(Reserve) 리스크*
 
 - `docker-compose.yml` – MCP 서버와 Ollama 컨테이너를 정의합니다.
 - `.env.example` – 환경변수 템플릿입니다. 실행 전 `.env`로 복사하여 값을 채워야 합니다.
-- `touch_mount_dir.sh` – 호스트에 PDF 저장/결과 디렉토리를 만드는 스크립트입니다.
+- `touch_mount_dir.sh` – 호스트에 PDF 캐싱용 마운트 디렉토리를 만드는 스크립트입니다(이 스크립트로 생성된 경로를 환경변수에 잘 입력해야 오류가 발생하지 않습니다).
 - `common/schema.py` – 입력/출력 데이터 클래스(`CoinData`, `OnChainData`, `Indices`, `RfRResponse` 등)를 정의합니다.
 - `claude_desktop_entrypoint.sh` – Claude Desktop에서 MCP 서버를 자동으로 구동하고 연결하는 스크립트입니다.
 
@@ -66,9 +69,9 @@ RunFromRun은 스테이블코인의 **오프체인 준비금(Reserve) 리스크*
 
 ## 사전 준비
 
-### 1) PDF/결과 저장 디렉토리 생성
+### 1) PDF/결과 캐싱 디렉토리 생성
 
-프로젝트 루트에서 다음을 실행하여 호스트의 결과 저장 폴더를 생성합니다:
+프로젝트 루트에서 다음을 실행하여 호스트의 캐싱용 디렉토리 생성합니다:
 
 ```bash
 chmod +x touch_mount_dir.sh
@@ -279,12 +282,13 @@ FRRS와 OHS를 시간에 따라 가중 평균하여 최종 위험 점수를 계�
 
 ### Ollama 연결 오류
 - Compose 내부 통신에서는 `OLLAMA_HOST="http://ollama:11434"`를 사용합니다.  
-- 로컬에서 직접 테스트할 때는 `OLLAMA_HOST="http://localhost:11434"`로 변경합니다.  
+- 로컬에서 직접 테스트할 때는 `OLLAMA_HOST="http://localhost:11434"`로 변경합니다.
+- 환경변수로 주입된 모델들은 호스트의 Ollama에서 다운되어 있어야하고, 도커 컴포즈 파일에 적절히 마운트 되어야합니다.
 - `ollama` 컨테이너가 실행 중인지 확인합니다.
 
 ### CoinGecko API 오류
-- `API_KEY_COINGECKO` 값이 Pro API 키인지 확인합니다.  
-- `.env`에서 `COINGECKO_PRO_API_URL`을 사용하고 있는지 확인합니다.  
+- `API_KEY_COINGECKO` 값이 Demo API 키인지 확인합니다.  
+- `.env`에서 `COINGECKO_DEMO_API_URL`을 사용하고 있는지 확인합니다.  
 - 제한 초과나 일시적 장애일 수 있으므로 잠시 후 재시도합니다.
 
 ### 체인 RPC 오류
